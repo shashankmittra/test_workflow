@@ -5,8 +5,10 @@
   "description": "Basic hello world application for Node.js",
   "author": "Robbie Minshall <rjminsha@us.ibm.com>",
   "dependencies": {
+    "body-parser": "^1.19.0",
     "express": "4.17.1",
-    "jest": "^27.0.1"
+    "jest": "^27.0.1",
+    "swagger-ui-express": "^4.1.6"
   },
   "scripts": {
     "start": "node app.js",

@@ -13,13 +13,30 @@
 *   See the License for the specific language governing permissions and
 **/
 
-var express = require('express');
-var PORT = 8080;
+const express = require('express');
+const bodyParser = require('body-parser');
+const PORT = 8080;
 
-var app = express();
-app.get('/', function (req, res) {
-  res.send('Welcome to IBM Cloud DevOps with Tekton (built with the COCOA pipeline). Let\'s go use the Continuous Delivery Service. yay \o/');
+const app = express();
+const swaggerUi = require('swagger-ui-express'),
+swaggerDocument = require('./swagger.json');
+// parse requests of content-type - application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }))
+
+// parse requests of content-type - application/json
+app.use(bodyParser.json())
+
+
+require('./app/routes/routes.js')(app);
+app.get('/',  (req, res) => {
+  res.send('Welcome to IBM Cloud DevOps with Tekton (built with the COCOA pipeline). Let\'s go use the Continuous Delivery Service.!!');
 });
+
+app.use(
+  '/api-docs',
+  swaggerUi.serve, 
+  swaggerUi.setup(swaggerDocument)
+);
 
 app.listen(PORT);
 // test
