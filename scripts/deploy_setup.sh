@@ -25,9 +25,8 @@ IBMCLOUD_IKS_CLUSTER_NAME="$(cat /config/cluster-name)"
 REGISTRY_URL="$(cat /config/image | awk -F/ '{print $1}')"
 IMAGE="$(cat /config/image)"
 IMAGE_PULL_SECRET_NAME="ibmcloud-toolchain-${IBMCLOUD_TOOLCHAIN_ID}-${REGISTRY_URL}"
-BREAK_GLASS=$(cat /config/break_glass || echo "")
 
-if [[ -n "${BREAK_GLASS}" ]]; then
+if [[ -f "/config/break_glass" ]]; then
   export KUBECONFIG
   KUBECONFIG=/config/cluster-cert
 else
