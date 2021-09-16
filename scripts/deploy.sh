@@ -79,3 +79,4 @@ PORT=$(kubectl get service -n  "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" "$service_name"
 echo "Application URL: http://${IP_ADDRESS}:${PORT}"
 
 echo -n "http://${IP_ADDRESS}:${PORT}" > ../app-url
+set_env app-url "http://${IP_ADDRESS}:${PORT}"
