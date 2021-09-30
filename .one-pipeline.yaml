@@ -52,6 +52,15 @@ deploy:
     source scripts/deploy_setup.sh
     source scripts/deploy.sh
 
+dynamic-scan: 
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.12@sha256:ff4053b0bca784d6d105fee1d008cfb20db206011453071e86b69ca3fde706a4
+  script: |
+    #!/usr/bin/env bash
+
+    export APP_URL=$(cat ../app-url)
+    source scripts/zap/trigger_api_scan.sh
+
 acceptance-test:
   abort_on_failure: false
   image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.12@sha256:ff4053b0bca784d6d105fee1d008cfb20db206011453071e86b69ca3fde706a4
@@ -70,4 +79,19 @@ release:
     #!/usr/bin/env bash
 
     source scripts/release.sh
+
+owasp-zap-api:
+  dind: true
+  abort_on_failure: false
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.12@sha256:ff4053b0bca784d6d105fee1d008cfb20db206011453071e86b69ca3fde706a4
+  script: |
+    #!/usr/bin/env bash
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
+    
+    source scripts/zap/setup_api_scan.sh
+    source scripts/zap/run_api_scan.sh
 

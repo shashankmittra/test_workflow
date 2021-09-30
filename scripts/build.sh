@@ -30,5 +30,13 @@ echo -n "$IMAGE_TAG" > ../image-tags
 echo -n "$IMAGE" > ../image
 
 if which save_artifact >/dev/null; then
-  save_artifact app-image type=image "name=${IMAGE}" "digest=${DIGEST}"
+  
+  url="$(load_repo app-repo url)"
+  sha="$(load_repo app-repo commit)"
+
+  save_artifact app-image \
+    type=image \
+    "name=${IMAGE}" \
+    "digest=${DIGEST}" \
+    "source=${url}.git#${sha}"
 fi
