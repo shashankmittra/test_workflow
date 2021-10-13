@@ -9,42 +9,6 @@ workingdir="$(pwd)"
 
 cd "$WORKSPACE" || exit 1
 
-repo="app-repo"
-url="$(load_repo "${repo}" "url")"
-sha="$(load_repo "${repo}" "commit")"
-branch="$(load_repo "${repo}" "branch")"
-path="$(load_repo "${repo}" "path")"
-
-params=( \
-    "${url}" \
-)
-
-if [ -n "$branch" ]; then
-    params+=( "$branch" )
-else
-    params+=( "master" )
-fi
-
-if [ -z "$path" ]; then
-    path="${repo}"
-fi  
-
-printf "%s" "${params[@]}" >&2
-printf "%s" "${path}" >&2 
-
-. "${ONE_PIPELINE_PATH}"/git/get_credentials "$WORKSPACE/secrets/git-token"
-
-. "${ONE_PIPELINE_PATH}"/git/clone_repo "${params[@]}" "${path}"
-
-save_repo "${repo}" \
-    "path=${DIRECTORY_NAME}"
-
-if [ -z "$branch" ] && [ -n "$sha" ]; then
-    cd "${DIRECTORY_NAME}"
-    git checkout "${sha}"
-    cd "$WORKSPACE"
-fi
-
 IBMCLOUD_API="$(get_env ibmcloud-api "https://cloud.ibm.com")"
 CLUSTER_NAMESPACE="$(get_env zap-namespace "zap")"
 PIPELINE_TOOLCHAIN_ID=$PIPELINE_ID
