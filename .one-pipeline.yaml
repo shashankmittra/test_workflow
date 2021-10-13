@@ -59,6 +59,8 @@ dynamic-scan:
     #!/usr/bin/env bash
 
     export APP_URL=$(cat ../app-url)
+    # feature preivew this until evidence locker v2 usage is full feature ready 
+    # can be triggered, and owasp will run for preview purposes 
     source scripts/zap/trigger_api_scan.sh
 
 acceptance-test:
