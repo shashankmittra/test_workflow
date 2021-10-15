@@ -9,13 +9,17 @@ workingdir="$(pwd)"
 
 cd "$WORKSPACE" || exit 1
 
+# Image containing the ZAP scanner, 
+# this have to be deployed to global ICR
+# right now you have to copy this to your namespace
+IMAGE="$(get_env zap-image "us.icr.io/cocoa-zapscanner/zapscanner@sha256:c7f6af3c16e2d897b8d57572049f07648f91a6397b1f9d2a3219788abfbc52d8")"
+
 IBMCLOUD_API="$(get_env ibmcloud-api "https://cloud.ibm.com")"
 CLUSTER_NAMESPACE="$(get_env zap-namespace "zap")"
 PIPELINE_TOOLCHAIN_ID=$PIPELINE_ID
 IBMCLOUD_API_KEY="$(get_env ibmcloud-api-key "")"
 IBMCLOUD_IKS_CLUSTER_NAME="$(get_env cluster-name "")"
 SERVICE_NAME="$(get_env zap-service "zap-service")"
-IMAGE="$(get_env zap-image "us.icr.io/cocoa-zapscanner/zapscanner@sha256:c7f6af3c16e2d897b8d57572049f07648f91a6397b1f9d2a3219788abfbc52d8")"
 PIPELINE_DEBUG="$(get_env pipeline-debug "")"
 
 if [ "${PIPELINE_DEBUG}" = "1" ]; then
