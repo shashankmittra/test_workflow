@@ -1,6 +1,15 @@
 [
-     {
-       "cve": "SNYK-JS-ANSIREGEX-1583908",
+    {
+       "cve": "SNYK-JS-PROMPTS-1729737",
+       "alwaysOmit": true
+     },
+    {
+       "cve": "SNYK-RHEL8-NODEJSNODEMON-1075183",
+       "alwaysOmit": true
+     },
+    {
+       "cve": "SNYK-RHEL8-NODEJSNODEMON-1083061",
        "alwaysOmit": true
      }
- ]
+]
+
