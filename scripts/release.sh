@@ -49,6 +49,9 @@ cocoa inventory add \
     --build-number="${BUILD_NUMBER}" \
     --pipeline-run-id="${PIPELINE_RUN_ID}" \
     --version="$(cat /config/version)" \
+    --type="deployment" \
+    --sha256="${SHA_256}" \
+    --signature="${SIGNATURE}" \
     --name="${APP_REPO_NAME}_deployment"
 
 cocoa inventory add \
