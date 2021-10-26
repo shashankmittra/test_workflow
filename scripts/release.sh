@@ -27,7 +27,7 @@ else
     export APP_REPO_NAME=${APP_REPO_NAME%.git}
 fi
 
-ARTIFACT="https://github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/blob/${COMMIT_SHA}/deployment.yml"
+ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/deployment.yml"
 
 IMAGE_ARTIFACT="$(cat /config/artifact)"
 SIGNATURE="$(cat /config/signature)"
