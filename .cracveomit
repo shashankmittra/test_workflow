@@ -1,15 +1,74 @@
 [
-    {
-       "cve": "SNYK-JS-PROMPTS-1729737",
-       "alwaysOmit": true
-     },
-    {
-       "cve": "SNYK-RHEL8-NODEJSNODEMON-1075183",
-       "alwaysOmit": true
-     },
-    {
-       "cve": "SNYK-RHEL8-NODEJSNODEMON-1083061",
-       "alwaysOmit": true
-     }
+  {
+    "cve":"SNYK-JS-PROMPTS-1729737",
+    "alwaysOmit":true
+  }, 
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1565093",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1565081",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1534632",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1464996",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1464951",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1463606",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1355950",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1355067",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1354836",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-LIBSTDCDEVEL-1912974",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-LIBSTDC-1912919",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-LIBGOMP-1912925",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-LIBGCC-1912941",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-GCCC-1913005",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-GCC-1912989",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-BINUTILS-1909580",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-CPP-1912991",
+    "alwaysOmit":true
+  }
 ]
-
