@@ -176,6 +176,14 @@ collect_evidence() {
   artifact="app-image"
   save_result "${artifact}-dynamic_scan-attachments" "${WORKSPACE}/zap-result"
   save_artifact "${artifact}" dynamic_scan-result=1
+
+  collect-evidence \
+    --tool-type "owasp-zap" \
+    --status "failure" \
+    --evidence-type "com.ibm.dynamic_scan" \
+    --asset-type "artifact" \
+    --asset-key "$artifact" \
+    --attachment "${WORKSPACE}/zap-result"
 }
 
 getTargetApplicationURL
