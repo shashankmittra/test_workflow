@@ -25,18 +25,28 @@ if [[ "${TAG}" ]]; then
 fi
 
 DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE" | awk -F@ '{print $2}')"
-echo -n "$DIGEST" > ../image-digest
-echo -n "$IMAGE_TAG" > ../image-tags
-echo -n "$IMAGE" > ../image
 
 if which save_artifact >/dev/null; then
-  
-  url="$(load_repo app-repo url)"
-  sha="$(load_repo app-repo commit)"
-
+  #
+  # Save the artifact to the pipeline, 
+  # so it can be scanned and signed later
+  #
   save_artifact app-image \
     type=image \
     "name=${IMAGE}" \
-    "digest=${DIGEST}" \
+    "digest=${DIGEST}"
+
+  #
+  # Make sure you connect the built artifact to the repo and commit
+  # it was built from. The source repo asset format is:
+  #   <repo_URL>.git#<commit_SHA>
+  #
+  # In this example we have a repo saved as `app-repo`,
+  # and we've used the latest cloned state to build the image.
+  #
+  url="$(load_repo app-repo url)"
+  sha="$(load_repo app-repo commit)"
+  
+  save_artifact app-image \
     "source=${url}.git#${sha}"
 fi
