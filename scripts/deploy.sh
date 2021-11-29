@@ -49,8 +49,9 @@ else
     --patch '{"imagePullSecrets":[{"name":"'"$IMAGE_PULL_SECRET_NAME"'"}]}' \
     default
 fi
-#Portieris is not compatible with image name containing both tag and sha. Removing the tag
-IMAGE="${IMAGE%%:*}@${IMAGE#*"@"}"
+
+#Portieris is not compatible with image name containing both tag and sha. Adding only the SHA
+IMAGE="${IMAGE%%:*}@${DIGEST}"
 sed -i "s~^\([[:blank:]]*\)image:.*$~\1image: ${IMAGE}~" deployment.yml
 
 deployment_name=$(yq r deployment.yml metadata.name)

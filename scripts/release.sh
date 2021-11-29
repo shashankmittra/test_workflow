@@ -4,66 +4,70 @@
 # prepare data
 #
 
-export GHE_TOKEN="$(cat ../git-token)"
-export COMMIT_SHA="$(cat /config/git-commit)"
-export APP_NAME="$(cat /config/app-name)"
+INVENTORY="$(get_env inventory-repo)"
+INVENTORY_ORG=${INVENTORY%/*}
+INVENTORY_ORG=${INVENTORY_ORG##*/}
+INVENTORY_REPO=${INVENTORY##*/}
+INVENTORY_REPO=${INVENTORY_REPO%.git}
 
-INVENTORY_REPO="$(cat /config/inventory-url)"
-GHE_ORG=${INVENTORY_REPO%/*}
-export GHE_ORG=${GHE_ORG##*/}
-GHE_REPO=${INVENTORY_REPO##*/}
-export GHE_REPO=${GHE_REPO%.git}
-
-export APP_REPO="$(cat /config/repository-url)"
+APP_REPO="$(load_repo app-repo url)"
 APP_REPO_ORG=${APP_REPO%/*}
-export APP_REPO_ORG=${APP_REPO_ORG##*/}
+APP_REPO_ORG=${APP_REPO_ORG##*/}
+APP_REPO_NAME=${APP_REPO##*/}
+APP_REPO_NAME=${APP_REPO_NAME%.git}
 
-if [[ -f "/config/repository" ]]; then
-    REPOSITORY="$(cat /config/repository)"
-    export APP_REPO_NAME=$(basename $REPOSITORY .git)
-    APP_NAME=$APP_REPO_NAME
-else
-    APP_REPO_NAME=${APP_REPO##*/}
-    export APP_REPO_NAME=${APP_REPO_NAME%.git}
-fi
+COMMIT_SHA="$(load_repo app-repo commit)"
 
-ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/deployment.yml"
+. "${ONE_PIPELINE_PATH}/git/get_credentials" "./git-token"
 
-IMAGE_ARTIFACT="$(cat /config/artifact)"
-SIGNATURE="$(cat /config/signature)"
-SHA_256=${IMAGE_ARTIFACT##*"@sha256:"}
-if [[ -f "/config/custom-image-tag" ]]; then
-    TAG="$(cat /config/custom-image-tag)"
-    APP_ARTIFACTS='{ "app": "'${APP_NAME}'", "tag": "'${TAG}'" }'
-else
-    APP_ARTIFACTS='{ "app": "'${APP_NAME}'" }'
-fi
 #
-# add to inventory
+# collect common parameters into an array
 #
-
-cocoa inventory add \
-    --artifact="${ARTIFACT}" \
+params=(
     --repository-url="${APP_REPO}" \
     --commit-sha="${COMMIT_SHA}" \
+    --version="${COMMIT_SHA}" \
     --build-number="${BUILD_NUMBER}" \
     --pipeline-run-id="${PIPELINE_RUN_ID}" \
-    --version="$(cat /config/version)" \
+    --git-token-path="./git-token" \
+    --org="$INVENTORY_ORG" \
+    --repo="$INVENTORY_REPO"
+)
+
+#
+# add the deployment file as a build artifact to the inventory
+#
+DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/deployment.yml"
+DEPLOYMENT_ARTIFACT_PATH="$(load_repo app-repo path)"
+DEPLOYMENT_ARTIFACT_DIGEST="$(shasum -a256 "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/deployment.yml" | awk '{print $1}')"
+
+cocoa inventory add \
+    --artifact="${DEPLOYMENT_ARTIFACT}" \
     --type="deployment" \
-    --sha256="${SHA_256}" \
-    --signature="${SIGNATURE}" \
-    --name="${APP_REPO_NAME}_deployment"
+    --sha256="${DEPLOYMENT_ARTIFACT_DIGEST}" \
+    --signature="${DEPLOYMENT_ARTIFACT_DIGEST}" \
+    --name="${APP_REPO_NAME}_deployment" \
+    "${params[@]}"
 
-cocoa inventory add \
-    --artifact="${IMAGE_ARTIFACT}" \
-    --repository-url="${APP_REPO}" \
-    --commit-sha="${COMMIT_SHA}" \
-    --build-number="${BUILD_NUMBER}" \
-    --pipeline-run-id="${PIPELINE_RUN_ID}" \
-    --version="$(cat /config/version)" \
-    --name="${APP_REPO_NAME}" \
-    --app-artifacts="${APP_ARTIFACTS}" \
-    --signature="${SIGNATURE}" \
-    --provenance="${IMAGE_ARTIFACT}" \
-    --sha256="${SHA_256}" \
-    --type="image"
+#
+# add all built images as build artifacts to the inventory
+#
+while read -r artifact ; do
+    image="$(load_artifact "${artifact}" name)"
+    signature="$(load_artifact "${artifact}" signature)"
+    digest="$(load_artifact "${artifact}" digest)"
+    tags="$(load_artifact "${artifact}" tags)"
+
+    APP_NAME="$(get_env app-name)"
+    APP_ARTIFACTS='{ "app": "'${APP_NAME}'", "tags": "'${tags}'" }'
+
+    cocoa inventory add \
+        --artifact="${image}@${digest}" \
+        --name="${APP_REPO_NAME}" \
+        --app-artifacts="${APP_ARTIFACTS}" \
+        --signature="${signature}" \
+        --provenance="${image}@${digest}" \
+        --sha256="${digest}" \
+        --type="image" \
+        "${params[@]}"
+done < <(list_artifacts)

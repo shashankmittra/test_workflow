@@ -8,22 +8,24 @@ export IBMCLOUD_IKS_CLUSTER_NAMESPACE
 export REGISTRY_URL
 export IMAGE_PULL_SECRET_NAME
 export IMAGE
+export DIGEST
 export HOME
 export BREAK_GLASS
 
 if [ -f /config/api-key ]; then
   IBMCLOUD_API_KEY="$(cat /config/api-key)" # pragma: allowlist secret
 else
-  IBMCLOUD_API_KEY="$(cat /config/ibmcloud-api-key)" # pragma: allowlist secret
+  IBMCLOUD_API_KEY="$(get_env ibmcloud-api-key)" # pragma: allowlist secret
 fi
 
 HOME=/root
 IBMCLOUD_TOOLCHAIN_ID="$(jq -r .toolchain_guid /toolchain/toolchain.json)"
-IBMCLOUD_IKS_REGION="$(cat /config/dev-region | awk -F ":" '{print $NF}')"
-IBMCLOUD_IKS_CLUSTER_NAMESPACE="$(cat /config/dev-cluster-namespace)"
-IBMCLOUD_IKS_CLUSTER_NAME="$(cat /config/cluster-name)"
-REGISTRY_URL="$(cat /config/image | awk -F/ '{print $1}')"
-IMAGE="$(cat /config/image)"
+IBMCLOUD_IKS_REGION="$(get_env dev-region | awk -F ":" '{print $NF}')"
+IBMCLOUD_IKS_CLUSTER_NAMESPACE="$(get_env dev-cluster-namespace)"
+IBMCLOUD_IKS_CLUSTER_NAME="$(get_env cluster-name)"
+REGISTRY_URL="$(load_artifact app-image name| awk -F/ '{print $1}')"
+IMAGE="$(load_artifact app-image name)"
+DIGEST="$(load_artifact app-image digest)"
 IMAGE_PULL_SECRET_NAME="ibmcloud-toolchain-${IBMCLOUD_TOOLCHAIN_ID}-${REGISTRY_URL}"
 
 if [[ -f "/config/break_glass" ]]; then
