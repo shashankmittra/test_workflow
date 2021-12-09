@@ -74,5 +74,17 @@
   {
     "cve":"SNYK-RHEL8-NODEJSNODEMON-1539434",
     "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1565125",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1565117",
+    "alwaysOmit":true
+  },
+  {
+    "cve":"SNYK-RHEL8-NODEJSNODEMON-1463742",
+    "alwaysOmit":true
   }
 ]
