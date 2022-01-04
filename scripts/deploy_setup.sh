@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source "${ONE_PIPELINE_PATH}"/tools/retry
+
 export IBMCLOUD_API_KEY
 export IBMCLOUD_TOOLCHAIN_ID
 export IBMCLOUD_IKS_REGION
@@ -34,8 +36,11 @@ if [[ -f "/config/break_glass" ]]; then
   KUBECONFIG=/config/cluster-cert
 else
   IBMCLOUD_IKS_REGION=$(echo "${IBMCLOUD_IKS_REGION}" | awk -F ":" '{print $NF}')
-  ibmcloud login -r "${IBMCLOUD_IKS_REGION}"
-  ibmcloud ks cluster config --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}"
+  retry 5 2 \
+    ibmcloud login -r "${IBMCLOUD_IKS_REGION}"
+  
+  retry 5 2 \
+    ibmcloud ks cluster config --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}"
 
   ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json > "${IBMCLOUD_IKS_CLUSTER_NAME}.json"
   IBMCLOUD_IKS_CLUSTER_ID=$(jq -r '.id' "${IBMCLOUD_IKS_CLUSTER_NAME}.json")
