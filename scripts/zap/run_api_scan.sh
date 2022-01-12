@@ -105,15 +105,15 @@ report() {
     REPORT=$(curl -X GET http://"${ZAP_BASE_URL}"/report)
     if [[ "${MESSAGE}" == "COMPLETED" ]]; then
         echo "DISPLAYING SCAN RESULT" >&2
+        
+        result="${WORKSPACE}/zap-result"
+        echo "${REPORT}" > "$result"
+
+        cd "$workingdir" || exit 1
+        collect_evidence
     else
         echo "Please see zap scanner logs for more details" >&2
     fi
-
-    result="${WORKSPACE}/zap-result"
-    echo "${REPORT}" > "$result"
-
-    cd "$workingdir" || exit 1
-    collect_evidence
 }
 
 #update the swagger definition wrapper with details for authenication details if required
