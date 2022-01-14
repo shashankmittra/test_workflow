@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+  trap env EXIT
+  env
+  set -x
+fi
+
+# GENERAL NOTE
+# The zap scan scripts assume it is working from ${WORKSPACE} (/workspace/app)
+# Paths are set based on this. For example. If the /workspace/app contains
+# a repo called 'myzap_repo' which contains the zap scripts, the path you specify
+# for the set up steps below should begin with 'myzap_repo/'. 
+# The scripts will automatically prefix these paths with ${WORKSPACE}.
+# By default when an async task starts up, it copies the content of your repo into /workspace/app/one-pipeline-config-repo
+# During the setup you must switch to ${WORKSPACE} and you can specify 'one-pipeline-config-repo' when setting the paths
+# The reason to specify the paths this way, is to allow a git clone command to run, cloning an additional repo into ${WORKSPACE}
+# The user might wish to have a common repo which holds the core zap scripts
+# And have specific scripts in the application repo
+
+# ##SCAN SET UP FOR API AND UI##
+
+# Directory which holds custom scripts for zap and the swagger definitions
+# in the example application, these are located in the application repo
+APP_REPO_PATH="$(load_repo app-repo path)"
+
+# SET THE WORKING DIRECTORY
+cd "${WORKSPACE}"
+
+# For deploying zap to a cluster an api-key and cluster name is required
+# Assumes apikey secret value is stored under pipeline param called "ibmcloud-api-key"
+# This can be updated in the zap-core/setup script
+
+# SEE owasp-zap/setup in the commons library (https://github.ibm.com/one-pipeline/commons) for other optional params
+
+# SET UP A RESULTS FILTER High, Medium, Low, Informational . By default this is set toInformational
+# set_env "filter-options" "Informational"
+
+# SET ADDITIONAL LOGGING
+# By default these additional logs are disabled
+#set_env "show-container-log" "true"
+#set_env "show-zap-log" "true"
+
+# SET UP ZAP API SCAN
+
+# FLAG FOR RUNNING API SCAN AS DIND default is true
+set_env "zap_dind" "true"
+
+# set the url of the app to scan
+# reading back the param app-url that was exported in the dynamic-scan setup stage
+# alternatively static urls can be set directly
+set_env "target-application-server-url" "$(get_env app-url "")"
+
+# set the swagger defintion file(s) comma separated if required
+set_env "swagger-definition-files" "$APP_REPO_PATH/definitions/definitions1.json"
+
+# set an optional custom file to modify the swagger definition before it is sent to be scan
+set_env "zap-api-custom-script" "$APP_REPO_PATH/scripts/zap/zap-custom-scripts/custom-api-script"
+
+# Setting IAM authentication
+# By default the IAM endpoint is set to https://iam.cloud.ibm.com/identity/token
+# set_env "iam-token-endpoint" "https://iam.cloud.ibm.com/identity/token"
+# the target-api-key referres to the API Key required to authenicate with IAM for the set of APIs to be tested
+# this can be set using get_env to read a secret from the pipeline properties
+# set_env "target-api-key" ""
+
+# start the scan
+source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
+
+# SET UP ZAP UI SCAN
+
+# set the UI flag. By default it is set to false
+set_env "zap-ui-scan" "true"
+
+# set the url of the app to scan (doesn't need to be set a second time)
+# the sample UI tests provided by SCC team in this case tests a deployment
+set_env "target-application-server-url" "https://test.cloud.ibm.com/catalog"
+
+# set the path the directory containing the UI test scripts
+set_env "zap-ui-script-directory" "$APP_REPO_PATH/scripts/zap/zap-ui-test/uiscripts"
+
+# set an optional custom file to run during the UI set up. See example
+# it might be a requirement to create a script container secrets for the UI tests to import
+set_env "zap-ui-custom-script" "$APP_REPO_PATH/scripts/zap/zap-custom-scripts/custom-ui-script"
+
+# set the path to a context file if required
+# set_env "context-file" "$APP_REPO_PATH/scripts/zap/zap-ui-test/contextfile/custom-context.context"
+
+#start the UI scan
+if [ "$(get_env "zap-ui-scan" "")" == "true" ]; then
+  source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
+fi

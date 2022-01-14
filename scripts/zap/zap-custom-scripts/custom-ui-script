@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# this will create a file called env.sh in the same root directory
+# that contains the the rest of the UI test scripts that is specified
+# in the setup steps shown in the .one-pipeline.yaml example
+# parameter such as "ibmcloud-api-key" must be a valid secret in the 
+# in the pipeline UI
+echo "#!/bin/bash" >> envs.sh
+echo "export APIKEY=$(get_env ibmcloud-api-key "")" >> envs.sh
+echo "export CLUSTER_NAME=$(get_env cluster-name "")" >> envs.sh
+echo "export REGION=$(get_env dev-region "")" >> envs.sh

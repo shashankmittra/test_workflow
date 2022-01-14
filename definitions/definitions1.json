@@ -1,132 +1,63 @@
 {
-    "excludeScanTypes": [
-      "CRLF_Injection",
-      "Buffer_Overflow",
-      "Directory_Browsing",
-      "External_Redirect",
-      "Format_String_Error",
-      "Parameter_Tampering",
-      "Remote_File_Inclusion",
-      "Script_Active_Scan",
-      "Server_Side_Code_Injection",
-      "Server_Side_Include",
-      "SQL_Injection",
-      "Xpath_Injection",
-      "XXE_External_Entity",
-      "SOAP_Action_Spoofing",
-      "SOAP_XML_Injection",
-      "Relative_Path_Confusion"
-    ],
-    "apisToScan": [
-      {
-        "path": "/data",
-        "method": "get"
-      },
-      {
-        "path": "/data/{key}/{value}",
-        "method": "put"
-      },
-      {
-        "path": "/data/{key}",
-        "method": "delete"
+  "swagger": "2.0",
+    "info": {
+      "version": "1.0.0",
+      "title": "Hello Compliance App",
+      "description": "Basic API for hello-compliance-app",
+      "license": {
+        "name": "Copyright 2014-2021 IBM",
+        "url": "https://github.ibm.com/one-pipeline/hello-compliance-app/blob/master/License.txt"
       }
+    },
+    "basePath": "/",
+    "schemes": [
+      "http"
     ],
-    "apiDefinitionJson": {
-      "swagger": "2.0",
-      "info": {
-        "version": "1.0.0",
-        "title": "Hello Compliance App",
-        "description": "Basic API for hello-compliance-app",
-        "license": {
-          "name": "Copyright 2014-2021 IBM",
-          "url": "https://github.ibm.com/one-pipeline/hello-compliance-app/blob/master/License.txt"
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "paths": {
+      "/data": {
+        "get": {
+          "tags": [
+            "Data"
+          ],
+          "summary": "Get all data in system",
+          "responses": {
+            "200": {
+              "description": "OK"
+            }
+          }
         }
       },
-      "basePath": "/",
-      "schemes": [
-        "http"
-      ],
-      "consumes": [
-        "application/json"
-      ],
-      "produces": [
-        "application/json"
-      ],
-      "paths": {
-        "/data": {
-          "get": {
-            "tags": [
-              "Data"
-            ],
-            "summary": "Get all data in system",
-            "responses": {
-              "200": {
-                "description": "OK"
-              }
+      "/data/{key}/{value}": {
+        "put": {
+          "summary": "Update the data object",
+          "tags": [
+            "Data"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK"
             }
           }
-        },
-        "/data/{key}/{value}": {
-          "parameters": [
-            {
-              "name": "key",
-              "in": "path",
-              "required": "true",
-              "description": "Entry key in the data",
-              "type": "string"
-            },
-            {
-              "name": "value",
-              "in": "path",
-              "required": "true",
-              "description": "The value of data entry",
-              "type": "string"
-            }
+        }
+      },
+      "/data/{key}": {
+        "delete": {
+          "summary": "Delete the specified data entry",
+          "tags": [
+            "Data"
           ],
-          "put": {
-            "summary": "Update the data object",
-            "parameters": [
-              {
-                "name": "insideMethod",
-                "in": "path",
-                "required": "true",
-                "description": "Entry key in the data",
-                "type": "string"
-              }
-            ],
-            "tags": [
-              "Data"
-            ],
-            "responses": {
-              "200": {
-                "description": "OK"
-              }
-            }
-          }
-        },
-        "/data/{key}": {
-          "parameters": [
-            {
-              "name": "key",
-              "in": "path",
-              "required": "true",
-              "description": "Entry key in the data",
-              "type": "string"
-            }
-          ],
-          "delete": {
-            "summary": "Delete the specified data entry",
-            "tags": [
-              "Data"
-            ],
-            "responses": {
-              "200": {
-                "description": "OK"
-              }
+          "responses": {
+            "200": {
+              "description": "OK"
             }
           }
         }
       }
     }
   }
-  
