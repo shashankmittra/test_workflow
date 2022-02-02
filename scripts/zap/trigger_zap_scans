@@ -16,7 +16,7 @@ fi
 # During the setup you must switch to ${WORKSPACE} and you can specify 'one-pipeline-config-repo' when setting the paths
 # The reason to specify the paths this way, is to allow a git clone command to run, cloning an additional repo into ${WORKSPACE}
 # The user might wish to have a common repo which holds the core zap scripts
-# And have specific scripts in the application repo
+# And have specific scripts in the application repo 
 
 # ##SCAN SET UP FOR API AND UI##
 
@@ -65,6 +65,9 @@ set_env "zap-api-custom-script" "$APP_REPO_PATH/scripts/zap/zap-custom-scripts/c
 # set_env "target-api-key" ""
 
 # start the scan
+
+# The scripts that run here are part of the DevSecOps Commons Script Library
+# See: https://github.ibm.com/open-toolchain/compliance-commons/tree/master/owasp-zap
 source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
 
 # SET UP ZAP UI SCAN
@@ -88,5 +91,7 @@ set_env "zap-ui-custom-script" "$APP_REPO_PATH/scripts/zap/zap-custom-scripts/cu
 
 #start the UI scan
 if [ "$(get_env "zap-ui-scan" "")" == "true" ]; then
+  # The scripts that run here are part of the DevSecOps Commons Script Library
+  # See: https://github.ibm.com/open-toolchain/compliance-commons/tree/master/owasp-zap
   source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
 fi
