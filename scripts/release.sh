@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 
 #
-# prepare data
+# prepare data for the release step. Here we upload all the metadata to the Inventory Repo.
+# If you want to add any information or artifact to the inventory repo then use the "cocoa inventory add command"
 #
+
 
 INVENTORY="$(get_env inventory-repo)"
 INVENTORY_ORG=${INVENTORY%/*}
@@ -37,17 +39,32 @@ params=(
 #
 # add the deployment file as a build artifact to the inventory
 #
-DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/deployment.yml"
+function upload_deployment_files_artifacts() {
+    deployment_file=$1
+    deployment_type=$2
+
+DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
 DEPLOYMENT_ARTIFACT_PATH="$(load_repo app-repo path)"
-DEPLOYMENT_ARTIFACT_DIGEST="$(shasum -a256 "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/deployment.yml" | awk '{print $1}')"
+DEPLOYMENT_ARTIFACT_DIGEST="$(shasum -a256 "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/${deployment_file}" | awk '{print $1}')"
 
 cocoa inventory add \
     --artifact="${DEPLOYMENT_ARTIFACT}" \
     --type="deployment" \
     --sha256="${DEPLOYMENT_ARTIFACT_DIGEST}" \
     --signature="${DEPLOYMENT_ARTIFACT_DIGEST}" \
-    --name="${APP_REPO_NAME}_deployment" \
+    --name="${APP_REPO_NAME}_${deployment_type}_deployment" \
     "${params[@]}"
+}
+
+DEPLOYMENT_FILE="$(get_env deployment-file)"
+CLUSTER_TYPE="$(get_env cluster-type)"
+if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
+   upload_deployment_files_artifacts ${DEPLOYMENT_FILE} OPENSHIFT
+  else
+   upload_deployment_files_artifacts deployment_iks.yml IKS
+fi
+
+
 
 #
 # add all built images as build artifacts to the inventory
