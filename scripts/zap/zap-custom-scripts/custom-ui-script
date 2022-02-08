@@ -5,7 +5,10 @@
 # in the setup steps shown in the .one-pipeline.yaml example
 # parameter such as "ibmcloud-api-key" must be a valid secret in the 
 # in the pipeline UI
-echo "#!/bin/bash" >> envs.sh
-echo "export APIKEY=$(get_env ibmcloud-api-key "")" >> envs.sh
-echo "export CLUSTER_NAME=$(get_env cluster-name "")" >> envs.sh
-echo "export REGION=$(get_env dev-region "")" >> envs.sh
+
+{
+  echo "#!/bin/bash"
+  "export APIKEY=$(get_env ibmcloud-api-key "")"
+  "export CLUSTER_NAME=$(get_env cluster-name "")" 
+  "export REGION=$(get_env dev-region "")"
+} >> envs.sh

@@ -20,6 +20,7 @@ APP_REPO_NAME=${APP_REPO_NAME%.git}
 
 COMMIT_SHA="$(load_repo app-repo commit)"
 
+# shellcheck disable=SC1091 # sourced path is in a different repo
 . "${ONE_PIPELINE_PATH}/git/get_credentials" "./git-token"
 
 #
