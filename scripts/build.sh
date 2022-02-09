@@ -2,8 +2,7 @@
 
 set -euo pipefail
 
-#cDOCKER_BUILDKIT=1 docker build $DOCKER_BUILD_ARGS .
-docker build $DOCKER_BUILD_ARGS .
+docker build "$DOCKER_BUILD_ARGS" .
 docker push "${IMAGE}"
 
 DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" | awk -F@ '{print $2}')"

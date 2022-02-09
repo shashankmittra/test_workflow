@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC1091 # sourced paths are in a different repo
 
 if [[ "$PIPELINE_DEBUG" == 1 ]]; then
   trap env EXIT
