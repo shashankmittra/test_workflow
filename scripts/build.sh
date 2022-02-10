@@ -2,7 +2,8 @@
 
 set -euo pipefail
 
-docker build "$DOCKER_BUILD_ARGS" .
+# shellcheck disable=SC2086
+docker build $DOCKER_BUILD_ARGS .
 docker push "${IMAGE}"
 
 DIGEST="$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" | awk -F@ '{print $2}')"
