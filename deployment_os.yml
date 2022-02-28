@@ -96,12 +96,26 @@ kind: Ingress
 metadata:
   name: hello-service-cip-ingress
   namespace: sample
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  defaultBackend:
-    service:
-        name: hello-service-cip
-        port:
-          number: 8080      
+  rules:
+  - http:
+      paths:
+      - path: /sample
+        pathType: Prefix
+        backend:
+          service:
+            name: hello-service-cip
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hello-service-cip
+            port:
+              number: 8080
 ---
 apiVersion: route.openshift.io/v1
 kind: Route

@@ -23,9 +23,30 @@ if [[ -n "$BREAK_GLASS" ]]; then
 else
   REGISTRY_AUTH=$(echo "{\"auths\":{\"${REGISTRY_URL}\":{\"auth\":\"$(echo -n iamapikey:"${IBMCLOUD_API_KEY}" | base64 -w 0)\",\"username\":\"iamapikey\",\"email\":\"iamapikey\",\"password\":\"${IBMCLOUD_API_KEY}\"}}}" | base64 -w 0)
 fi
-
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjson]" "${REGISTRY_AUTH}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+
+echo "updating Cluster IP service name with namespace..."
+CIP_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="ClusterIP" ) | .key')
+CIP_SERVICE_NAME=$(yq r --doc "$CIP_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
+CIP_SERVICE_NAME="${CIP_SERVICE_NAME}"-"${IBMCLOUD_IKS_CLUSTER_NAMESPACE}"
+yq write --doc "${CIP_DOC_INDEX}" "${DEPLOYMENT_FILE}" "metadata.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
+mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
+  ROUTE_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="route") | .key')
+  yq write --doc "${ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.to.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
+  mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+fi
+
+echo "updating Cluster IP service name in the ingress.."
+INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
+yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[*].backend.service.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
+mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+
+echo "updating Namespace for the path in the ingress.."
+yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[0].path" "/${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" > "${TEMP_DEPLOYMENT_FILE}"
+mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+
 
 
 # Portieris is not compatible with image name containing both tag and sha. Removing the tag
@@ -36,7 +57,6 @@ DEPLOYMENT_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to
 SERVICE_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="NodePort" ) | .key')
 
 deployment_name=$(yq r -d "${DEPLOYMENT_DOC_INDEX}" "${DEPLOYMENT_FILE}" metadata.name)
-service_name=$(yq r -d "${SERVICE_DOC_INDEX}" "${DEPLOYMENT_FILE}" metadata.name)
 
 
 kubectl apply --namespace "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" -f "${DEPLOYMENT_FILE}"
@@ -61,9 +81,6 @@ if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
   ROUTE_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="route") | .key')
   service_name=$(yq r --doc "$ROUTE_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
   APPURL=$(kubectl get route --namespace "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" "${service_name}" -o json | jq -r '.status.ingress[0].host')
-  echo "Application URL: http://${APPURL}"
-  echo -n http://"${APPURL}" >../app-url
-  set_env app-url "http://${APPURL}"
 else
   CLUSTER_INGRESS_SUBDOMAIN=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressHostname // .ingress.hostname' | cut -d, -f1)
   sleep 10
@@ -75,28 +92,42 @@ else
       service_name=$(yq r --doc "$INGRESS_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
       for ITER in {1..30}
       do
-        APPURL=$(kubectl get ing ${service_name} --namespace "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" -o json | jq -r .status.loadBalancer.ingress[0].ip)
-        if [ -z  "${APPURL}"  ] || [[  "${APPURL}" = "null"  ]]; then 
+        APPURL_IP=$(kubectl get ing "${service_name}" --namespace "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" -o json | jq -r .status.loadBalancer.ingress[0].ip)
+        if [ -z  "${APPURL_IP}"  ]; then 
+          APPURL_IP=null
+        fi
+        APPURL_HOST=$(kubectl get ing "${service_name}" --namespace "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" -o json | jq -r .status.loadBalancer.ingress[0].hostname)
+        if [ -z  "${APPURL_HOST}"  ]; then 
+          APPURL_HOST=null
+        fi
+        if [[  "${APPURL_HOST}" = "null"  ]] && [[  "${APPURL_IP}" = "null"  ]]; then 
            echo "Waiting for the application url from ingress...."
-           sleep 2
-        else
+           sleep 20
+        elif  [[  "${APPURL_HOST}" != "null"  ]]; then 
+          APPURL="${APPURL_HOST}/${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" 
           break
+        elif  [[  "${APPURL_IP}" != "null"  ]]; then 
+           APPURL="${APPURL_IP}/${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" 
+           break
         fi
       done
-      echo "Application URL: http://${APPURL}"
-      echo -n http://${APPURL} >../app-url
-      set_env app-url "http://${APPURL}"
-
     fi
-
-  else
-
+  fi
+  
+    # If unable to find the APP_URL and Ingress sub domain is not available.
+  if [ -z  "${APPURL}"  ] || [[  "${APPURL}" = "null"  ]]; then
+    service_name=$(yq r -d "${SERVICE_DOC_INDEX}" "${DEPLOYMENT_FILE}" metadata.name)
     IP_ADDRESS=$(kubectl get nodes -o json | jq -r '[.items[] | .status.addresses[] | select(.type == "ExternalIP") | .address] | .[0]')
     PORT=$(kubectl get service -n "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" "$service_name" -o json | jq -r '.spec.ports[0].nodePort')
-    echo "Application URL: http://${IP_ADDRESS}:${PORT}"
-    echo -n "http://${IP_ADDRESS}:${PORT}" >../app-url
-    set_env app-url "http://${IP_ADDRESS}:${PORT}"
-
-  fi
-
+    APPURL="${IP_ADDRESS}:${PORT}"
+  fi 
 fi
+
+if [ -z  "${APPURL}"  ] || [[  "${APPURL}" = "null"  ]] || [[  "${APPURL}" = ":"  ]]; then
+    echo "Unable to get Application URL....."
+    exit 1
+fi
+
+echo "Application URL: http://${APPURL}"
+echo -n http://${APPURL} >../app-url
+set_env app-url "http://${APPURL}"

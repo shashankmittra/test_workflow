@@ -82,4 +82,3 @@ if [ -z "${DEPLOYMENT_FILE}" ]; then
   set_env "cluster-type" "$CLUSTER_TYPE"
   echo "deployment-file is ${DEPLOYMENT_FILE}"
 fi
-
