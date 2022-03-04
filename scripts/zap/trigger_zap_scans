@@ -50,7 +50,18 @@ set_env "zap_dind" "true"
 # set the url of the app to scan
 # reading back the param app-url that was exported in the dynamic-scan setup stage
 # alternatively static urls can be set directly
-set_env "target-application-server-url" "$(get_env app-url "")"
+URL="$(get_env app-url "")"
+if [ -z  "${URL}"  ] || [[  "${URL}" = "http://null"  ]]; then
+
+  ZAP_EVIDENCE_TYPE="$(get_env zap_evidence_type "com.ibm.dynamic_scan")"
+  ZAP_STATUS_TYPE="failure"
+  source "${COMMONS_PATH}"/owasp-zap/report.sh
+
+  echo "Unable to get Application URL....."
+  exit 1
+fi 
+
+set_env "target-application-server-url" "${URL}"
 
 # set the swagger defintion file(s) comma separated if required
 set_env "swagger-definition-files" "$APP_REPO_PATH/definitions/definitions1.json"
