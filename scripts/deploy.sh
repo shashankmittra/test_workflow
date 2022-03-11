@@ -26,7 +26,7 @@ fi
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjson]" "${REGISTRY_AUTH}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
-echo "updating Cluster IP service name with namespace..."
+echo "Cluster IP Service should be unique accross all the namespace, updating Cluster IP service name with namespace..."
 CIP_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="ClusterIP" ) | .key')
 CIP_SERVICE_NAME=$(yq r --doc "$CIP_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
 CIP_SERVICE_NAME="${CIP_SERVICE_NAME}"-"${IBMCLOUD_IKS_CLUSTER_NAMESPACE}"
@@ -43,9 +43,23 @@ INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_en
 yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[*].backend.service.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
-echo "updating Namespace for the path in the ingress.."
-yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[0].path" "/${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" > "${TEMP_DEPLOYMENT_FILE}"
-mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+# Check if the cluster is paid IKS cluster. If yes then update the cluster domain name in place for the host name.
+CLUSTER_INGRESS_SUBDOMAIN=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressHostname // .ingress.hostname' | cut -d, -f1)
+INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
+if [ ! -z "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" != true ]; then 
+  if [ -z "${INGRESS_DOC_INDEX}" ]; then
+    echo "No Kubernetes Ingress definition found in $DEPLOYMENT_FILE."
+  else
+    # Update ingress with cluster domain/secret information
+    # Look for ingress rule whith host contains the token "cluster-ingress-subdomain"
+    INGRESS_RULES_INDEX=$(yq r --doc "${INGRESS_DOC_INDEX}" --tojson "${DEPLOYMENT_FILE}" | jq '.spec.rules | to_entries | .[] | select( .value.host | contains("cluster-ingress-subdomain")) | .key')
+    if [ ! -z "${INGRESS_RULES_INDEX}" ]; then
+      INGRESS_RULE_HOST=$(yq r --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.rules["${INGRESS_RULES_INDEX}"].host)
+      DOMAIN_ADDRESS="${IBMCLOUD_IKS_CLUSTER_NAMESPACE}"."${CLUSTER_INGRESS_SUBDOMAIN}"
+      yq w --inplace --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.rules["${INGRESS_RULES_INDEX}"].host ${INGRESS_RULE_HOST/cluster-ingress-subdomain/$DOMAIN_ADDRESS}
+    fi    
+  fi
+fi
 
 
 
@@ -82,39 +96,33 @@ if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
   service_name=$(yq r --doc "$ROUTE_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
   APPURL=$(kubectl get route --namespace "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" "${service_name}" -o json | jq -r '.status.ingress[0].host')
 else
-  CLUSTER_INGRESS_SUBDOMAIN=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressHostname // .ingress.hostname' | cut -d, -f1)
   sleep 10
-  if [ ! -z "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" != true ]; then
-    INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
+  if [ ! -z "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" != true ]; then 
     if [ -z "$INGRESS_DOC_INDEX" ]; then
       echo "No Kubernetes Ingress definition found in $DEPLOYMENT_FILE."
     else
       service_name=$(yq r --doc "$INGRESS_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
       for ITER in {1..30}
       do
-        APPURL_IP=$(kubectl get ing "${service_name}" --namespace "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" -o json | jq -r .status.loadBalancer.ingress[0].ip)
-        if [ -z  "${APPURL_IP}"  ]; then 
-          APPURL_IP=null
-        fi
-        APPURL_HOST=$(kubectl get ing "${service_name}" --namespace "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" -o json | jq -r .status.loadBalancer.ingress[0].hostname)
-        if [ -z  "${APPURL_HOST}"  ]; then 
-          APPURL_HOST=null
-        fi
-        if [[  "${APPURL_HOST}" = "null"  ]] && [[  "${APPURL_IP}" = "null"  ]]; then 
-           echo "Waiting for the application url from ingress...."
-           sleep 20
-        elif  [[  "${APPURL_HOST}" != "null"  ]]; then 
-          APPURL="${APPURL_HOST}/${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" 
+        INGRESS_JSON=$(kubectl get ingress --namespace "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" "${service_name}" -o json)
+        # Expose app using ingress host and path for the service
+        APP_HOST=$(echo $INGRESS_JSON | jq -r --arg service_name "${CIP_SERVICE_NAME}" '.spec.rules[] | first(select(.http.paths[].backend.serviceName==$service_name or .http.paths[].backend.service.name==$service_name)) | .host' | head -n1)
+        APP_PATH=$(echo $INGRESS_JSON | jq -r --arg service_name "${CIP_SERVICE_NAME}" '.spec.rules[].http.paths[] | first(select(.backend.serviceName==$service_name or .backend.service.name==$service_name)) | .path' | head -n1)
+        # Remove any group in the path in case of regex in ingress path definition
+        # https://kubernetes.github.io/ingress-nginx/user-guide/ingress-path-matching/
+        APP_PATH=$(echo "$APP_PATH" | sed "s/([^)]*)//g")
+        # Remove the last / from APP_PATH if any
+        APP_PATH="${APP_PATH%/}"
+        if [ ! -z  "${APP_HOST}"  ]; then 
+          APPURL="${APP_HOST}""${APP_PATH}"
           break
-        elif  [[  "${APPURL_IP}" != "null"  ]]; then 
-           APPURL="${APPURL_IP}/${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" 
-           break
         fi
+        sleep 2
       done
     fi
   fi
   
-    # If unable to find the APP_URL and Ingress sub domain is not available.
+  # If unable to find the APP_URL and Ingress sub domain is not available.
   if [ -z  "${APPURL}"  ] || [[  "${APPURL}" = "null"  ]]; then
     service_name=$(yq r -d "${SERVICE_DOC_INDEX}" "${DEPLOYMENT_FILE}" metadata.name)
     IP_ADDRESS=$(kubectl get nodes -o json | jq -r '[.items[] | .status.addresses[] | select(.type == "ExternalIP") | .address] | .[0]')
