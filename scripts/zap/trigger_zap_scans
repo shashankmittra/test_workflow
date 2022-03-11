@@ -80,7 +80,9 @@ set_env "zap-api-custom-script" "$APP_REPO_PATH/scripts/zap/zap-custom-scripts/c
 
 # The scripts that run here are part of the DevSecOps Commons Script Library
 # See: https://github.ibm.com/open-toolchain/compliance-commons/tree/master/owasp-zap
-source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
+if [ -n "$(get_env opt-in-dynamic-api-scan "")" ]; then
+  source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
+fi
 
 # SET UP ZAP UI SCAN
 
@@ -102,8 +104,19 @@ set_env "zap-ui-custom-script" "$APP_REPO_PATH/scripts/zap/zap-custom-scripts/cu
 # set_env "context-file" "$APP_REPO_PATH/scripts/zap/zap-ui-test/contextfile/custom-context.context"
 
 #start the UI scan
-if [ "$(get_env "zap-ui-scan" "")" == "true" ]; then
-  # The scripts that run here are part of the DevSecOps Commons Script Library
-  # See: https://github.ibm.com/open-toolchain/compliance-commons/tree/master/owasp-zap
-  source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
+if [ -n "$(get_env opt-in-dynamic-api-scan "")" ]; then
+  if [ "$(get_env "zap-ui-scan" "")" == "true" ]; then
+    # The scripts that run here are part of the DevSecOps Commons Script Library
+    # See: https://github.ibm.com/open-toolchain/compliance-commons/tree/master/owasp-zap
+    source "${COMMONS_PATH}"/owasp-zap/run_scan.sh
+  fi
+fi
+
+ZAP_API_RESULT=$(get_env api-scan-result "notRun")
+ZAP_UI_RESULT=$(get_env ui-scan-result "notRun")
+
+if [[ "${ZAP_API_RESULT}" =~ ^(success|notRun)$ && "${ZAP_UI_RESULT}" =~ ^(success|notRun)$ ]]; then
+  exit 0
+else
+  exit 1
 fi
