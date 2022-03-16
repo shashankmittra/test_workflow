@@ -96,19 +96,10 @@ kind: Ingress
 metadata:
   name: hello-service-cip-ingress
   namespace: sample
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
   - http:
       paths:
-      - path: /sample
-        pathType: Prefix
-        backend:
-          service:
-            name: hello-service-cip
-            port:
-              number: 8080
       - path: /
         pathType: Prefix
         backend:
