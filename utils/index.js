@@ -1,8 +1,7 @@
 const airportsListAdditionalMeta = require('../data/airports_list_additional_metadata.json');
 
 const isEmptyList = (list) => {
-    const result = list instanceof Array && list && list.length ? false : true;
-    return result;
+    return list instanceof Array && list && list.length ? false : true;
 }
 
 const arrayfy = (obj, key) => {
@@ -12,7 +11,7 @@ const arrayfy = (obj, key) => {
             [key]: meta,
             ...obj[meta]
         })
-    };
+    }
     return transformed;
 }
 

@@ -9,10 +9,10 @@
 # Contract with IBM Corp.
 ###############################################################################
 
-# DEFINITION_FILE represents the json definition as listed in swagger-definition-files
+# DEFINITION_FILE represents the json definition as listed in swagger-definition-files 
 # json-refs is sensitive to the file extension. If you give it a .yaml file, it will output yaml. Use .json.
 # The file must be in the right dir to resolve relative schema refs in other files
-# API_DATA_FILE is the expected file location for the modified data that will be sent to the scan.
+# API_DATA_FILE is the expected file location for the modified data that will be sent to the scan. 
 SWAGGER_DIR="$(dirname "${DEFINITION_FILE}")"
 SWAGGER_JSON_FILE="${SWAGGER_DIR}/_temp.json"
 cp "${DEFINITION_FILE}" "${SWAGGER_JSON_FILE}"
@@ -26,7 +26,7 @@ json-refs resolve "${SWAGGER_JSON_FILE}" > _resolved.json
 # wrap the swagger into a complete definitions file as expected by the zap scanner
 jq '{
     "excludeScanTypes": [],
-    "apisToScan": ["all"],
+    "apisToScan": [{"path":"/health", "method":"get"}],
     "apiDefinitionJson": .
 }' "$(pwd)/_resolved.json" > "${API_DATA_FILE}"
 

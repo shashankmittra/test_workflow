@@ -22,6 +22,8 @@ const utils = require('../utils');
 
 const airportsList = require('../data/airports_list.json');
 
+const csrfProtection = require('../utils/csrf-middleware');
+
 function logincheck(req, res, next) {
     if (req.session && req.session.userEmail) {
         req.isLoggedInUser = true
@@ -33,66 +35,8 @@ function logincheck(req, res, next) {
 
 /* flight search */
 /* GET flights between two airports */
-router.post('/search', (req, res, next) => {
-    let { to, from, trip_class, trip_type, pax, date } = req.body;
-    // validation for payload
-    if(!to || !from) {
-        return res.status(400).send({
-            status: false,
-            message: "Source and Destination required"
-        });
-    }
-    if(!trip_class) {
-        trip_class = enumMap.trip_class_map.ECONOMY;
-    } else if(!utils.validateEnumMap(enumMap.trip_class_map, trip_class)) {
-        return res.status(400).send({
-            status: false,
-            message: "Invalid trip class"
-        });
-    }
-
-    if(!trip_type) {
-        trip_type = enumMap.trip_type_map.ONE_WAY;
-    } else if(!utils.validateEnumMap(enumMap.trip_type_map, trip_type)) {
-        return res.status(400).send({
-            status: false,
-            message: "Invalid trip type"
-        });
-    }
-
-    if(!pax || (!pax.adult && !pax.children) ) {
-        return res.status(400).send({
-            status: false,
-            message: "Passengers can not be zero"
-        });
-    }
-
-    if(!date || !date.departing) {
-        return res.status(400).send({
-            status: false,
-            message: "Departing date must be set!"
-        });
-    } else if(date && !date.returning && trip_type === enumMap.trip_type_map.ROUND_TRIP) {
-        return res.status(400).send({
-            status: false,
-            message: "Returning date must be set for round-trip flight!"
-        });
-    }
-
-    if(date && !Date.parse(new Date(date.departing))) {
-        return res.status(400).send({
-            status: false,
-            message: "Invalid departing date"
-        });
-    }
-
-    if(date && date.returning && !Date.parse(new Date(date.returning))) {
-        return res.status(400).send({
-            status: false,
-            message: "Invalid return date"
-        });
-    }
-
+router.post('/search', validateSearchData, validateDateForTrip, (req, res, next) => {
+    let { to, from, trip_type, pax, date } = req.body;
     /* find flights between from and two
     ignore rest of the params */
 
@@ -122,23 +66,23 @@ router.post('/search', (req, res, next) => {
     });
 });
 
-function computeFlightSearch(from, to, pax, date) {
+function computeFlightSearch(source, dest, pax, date) {
     const filtered_airports = airportsList.filter(elem => elem.icao);
-    let from_airport = filtered_airports.find(elem => elem.code === from);
+    let from_airport = filtered_airports.find(elem => elem.code === source);
     if(!from_airport) {
-        throw {
+        throw new Object({
             status: false,
             message: "Departing airport not found in the list",
             statusCode: 404
-        };
+        });
     }
-    let to_airport = filtered_airports.find(elem => elem.code === to);
+    let to_airport = filtered_airports.find(elem => elem.code === dest);
     if(!to_airport) {
-        throw {
+        throw new Object({
             status: false,
             message: "Destination airport not found in the list",
             statusCode: 404
-        };
+        });
     }
     from_airport = utils.addMetaToAirportInfo(from_airport);
     to_airport = utils.addMetaToAirportInfo(to_airport);
@@ -148,32 +92,32 @@ function computeFlightSearch(from, to, pax, date) {
     // airlines operating from "from airport"
     const airlines_operating_from = from_airport['nick'] ? airport_airlines[from_airport['nick']] : [];
     if(!airlines_operating_from || !airlines_operating_from.length) {
-        throw {
+        throw new Object({
             status: false,
             message: "No airlines found to be operating from departure airport",
             statusCode: 404
-        };
+        });
     }
 
     // airlines operating from "from airport"
     const airlines_operating_to = to_airport['nick'] ? airport_airlines[to_airport['nick']] : [];
     if(!airlines_operating_to || !airlines_operating_to.length) {
-        throw {
+        throw new Object({
             status: false,
             message: "No airlines found to be operating to destination airport",
             statusCode: 404
-        };
+        });
     }
 
     // find intersecting airlines
     const intersecting_airlines = airlines_operating_from.filter(value => airlines_operating_to.includes(value));
 
     if(!intersecting_airlines.length) {
-        throw {
+        throw new Object({
             status: false,
             message: "No flights connecting the cities",
             statusCode: 404
-        };
+        });
     }
 
     //put some dummy price info, flight numbers, and time
@@ -197,9 +141,78 @@ function computeFlightSearch(from, to, pax, date) {
     return results;
 }
 
+function validateSearchData(req, res, next) {
+    let { to, from, trip_class, trip_type, pax } = req.body;
+    // validation for payload
+    if(!to || !from) {
+        return res.status(400).send({
+            status: false,
+            message: "Source and Destination required"
+        });
+    }
+    if(!trip_class) {
+        req.body.trip_class = enumMap.trip_class_map.ECONOMY;
+    } 
+    if(!utils.validateEnumMap(enumMap.trip_class_map, req.body.trip_class)) {
+        return res.status(400).send({
+            status: false,
+            message: "Invalid trip class"
+        });
+    }
+
+    if(!trip_type) {
+        req.body.trip_type = enumMap.trip_type_map.ONE_WAY;
+    } 
+    if(!utils.validateEnumMap(enumMap.trip_type_map, req.body.trip_type)) {
+        return res.status(400).send({
+            status: false,
+            message: "Invalid trip type"
+        });
+    }
+
+    if(!pax || (!pax.adult && !pax.children) ) {
+        return res.status(400).send({
+            status: false,
+            message: "Passengers can not be zero"
+        });
+    }
+
+    return next();
+}
+
+function validateDateForTrip(req, res, next) {
+    let { date, trip_type } = req.body;
+    if(!date || !date.departing) {
+        return res.status(400).send({
+            status: false,
+            message: "Departing date must be set!"
+        });
+    } else if(date && !date.returning && trip_type === enumMap.trip_type_map.ROUND_TRIP) {
+        return res.status(400).send({
+            status: false,
+            message: "Returning date must be set for round-trip flight!"
+        });
+    }
+
+    if(date && !Date.parse(new Date(date.departing))) {
+        return res.status(400).send({
+            status: false,
+            message: "Invalid departing date"
+        });
+    }
+
+    if(date && date.returning && !Date.parse(new Date(date.returning))) {
+        return res.status(400).send({
+            status: false,
+            message: "Invalid return date"
+        });
+    }
+    return next();
+}
+
 /* GET flightbooking page. */
-router.get('/', logincheck, (req, res, next) => {
-    res.render('flights', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail });
+router.get('/', logincheck, csrfProtection, (req, res, next) => {
+    res.render('flights', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail, _csrf: req.csrfToken() });
 });
 
 

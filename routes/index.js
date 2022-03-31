@@ -13,6 +13,8 @@
 
 const express = require('express');
 
+const csrfProtection = require('../utils/csrf-middleware');
+
 const router = express.Router();
 
 function logincheck(req, res, next) {
@@ -29,14 +31,14 @@ router.get('/health', (req, res, next) => {
 })
 
 /* GET home page. */
-router.get('/', logincheck, (req, res, next) => {
-  res.render('index', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail });
+router.get('/', logincheck, csrfProtection, (req, res, next) => {
+  res.render('index', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail, _csrf: req.csrfToken() });
 });
 
 /* Login code */
 router.post('/', (req, res, next) => {
-  if (req.body.logemail && req.body.logpassword) {
-    req.session.userEmail = req.body.logemail;
+  if (req.body.username && req.body.password) {
+    req.session.userEmail = req.body.username;
     return res.redirect('/');
   } else {
     var err = new Error('All fields required.');

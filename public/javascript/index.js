@@ -39,10 +39,10 @@ function showResults(val, type_of_airport) {
                 list_first_elem.selected = true;
                 list_first_elem.innerHTML = "Please select a city / airport";
                 res.appendChild(list_first_elem);
-                for(let i = 0 ; i < results_arr.length; i++) {
+                for(let each of results_arr) {
                     list = document.createElement("option");
-                    list.value = results_arr[i].code;
-                    list.innerHTML = `${results_arr[i].city} - ${results_arr[i].name}`;
+                    list.value = each.code;
+                    list.innerHTML = `${each.city} - ${each.name}`;
                     res.appendChild(list);
                 }
                 return true;
@@ -65,7 +65,6 @@ function showResults(val, type_of_airport) {
 function setSelection(selected_val, type_of_airport ) {
     document.getElementById(config[type_of_airport]['input_field_id']).value = selected_val;
     document.getElementById(config[type_of_airport]['selector_id']).style.display = "none";
-    return;
 }
 
 function debounce(func, timeout = 300){
@@ -79,10 +78,9 @@ function debounce(func, timeout = 300){
 const airport_results = debounce(showResults);
 
 function hideItems(items) {
-    for(let i = 0; i < items.length; i++) {
-        items[i].style.display = "none";
+    for(let each of items) {
+        each.style.display = "none";
     }
-    return;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -109,8 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const city_results_input_fields = document.getElementsByClassName('city_results_input');
 
-    for(let i = 0; i < city_results_input_fields.length; i++ ) {
-        let city_result_input_field = city_results_input_fields[i];
+    for(let city_result_input_field of city_results_input_fields ) {
         city_result_input_field.addEventListener("keyup", function(event) {
             event.stopPropagation();
             const id = event.target.id;
