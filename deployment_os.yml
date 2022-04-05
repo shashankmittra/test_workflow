@@ -113,6 +113,8 @@ kind: Route
 metadata:
   name: hello-service-cip-route
   namespace: sample
+  annotations:
+    haproxy.router.openshift.io/disable_cookies: 'true'
 spec:
   path: /
   to:
