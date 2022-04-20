@@ -18,6 +18,7 @@ WORKDIR /usr/src/app
 RUN chown -R 1001:0 /usr/src/app
 COPY package*.json ./
 RUN npm install
+RUN rm -rf node_modules/async
 COPY . .
 USER 1001
 EXPOSE 8080
