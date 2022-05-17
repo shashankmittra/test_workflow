@@ -9,7 +9,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-FROM registry.access.redhat.com/ubi8/nodejs-16@sha256:e5d9ddf7fd85e10276991e39c3249321593469524f408425b7828f421c7ce77d
+FROM registry.access.redhat.com/ubi8/nodejs-14
 USER root
 RUN yum update -y && yum upgrade -y
 RUN npm -v
@@ -18,7 +18,6 @@ WORKDIR /usr/src/app
 RUN chown -R 1001:0 /usr/src/app
 COPY package*.json ./
 RUN npm install
-RUN rm -rf node_modules/async
 COPY . .
 USER 1001
 EXPOSE 8080

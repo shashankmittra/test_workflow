@@ -1,6 +1,3 @@
 [
-    {
-        "cve": "SNYK-JS-ASYNC-2441827",
-        "alwaysOmit": true
-    }
+    
 ]
