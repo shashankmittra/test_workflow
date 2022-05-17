@@ -24,7 +24,7 @@ const airportsList = require('../data/airports_list.json');
 
 const csrfProtection = require('../utils/csrf-middleware');
 
-function logincheck(req, res, next) {
+function logincheck(req, _res, next) {
     if (req.session && req.session.userEmail) {
         req.isLoggedInUser = true
     } else {
@@ -35,19 +35,19 @@ function logincheck(req, res, next) {
 
 /* flight search */
 /* GET flights between two airports */
-router.post('/search', validateSearchData, validateDateForTrip, (req, res, next) => {
-    let { to, from, trip_type, pax, date } = req.body;
+router.post('/search', validateSearchData, validateDateForTrip, (req, res) => {
+    let { to, from, trip_type, pax } = req.body;
     /* find flights between from and two
     ignore rest of the params */
 
     let onward_flights, return_flights;
     try {
         if(trip_type === enumMap.trip_type_map.ONE_WAY) {
-            onward_flights = computeFlightSearch(from, to, pax, date.departing);
+            onward_flights = computeFlightSearch(from, to, pax);
             return_flights = null;
         } else {
-            onward_flights = computeFlightSearch(from, to, pax, date.departing);
-            return_flights = computeFlightSearch(to, from, pax, date.returning);
+            onward_flights = computeFlightSearch(from, to, pax);
+            return_flights = computeFlightSearch(to, from, pax);
         }
     } catch(err) {
         console.log(err);
@@ -66,7 +66,7 @@ router.post('/search', validateSearchData, validateDateForTrip, (req, res, next)
     });
 });
 
-function computeFlightSearch(source, dest, pax, date) {
+function computeFlightSearch(source, dest, pax) {
     const filtered_airports = airportsList.filter(elem => elem.icao);
     let from_airport = filtered_airports.find(elem => elem.code === source);
     if(!from_airport) {
@@ -211,7 +211,7 @@ function validateDateForTrip(req, res, next) {
 }
 
 /* GET flightbooking page. */
-router.get('/', logincheck, csrfProtection, (req, res, next) => {
+router.get('/', logincheck, csrfProtection, (req, res) => {
     res.render('flights', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail, _csrf: req.csrfToken() });
 });
 

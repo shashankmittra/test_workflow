@@ -17,7 +17,7 @@ const csrfProtection = require('../utils/csrf-middleware');
 
 const router = express.Router();
 
-function logincheck(req, res, next) {
+function logincheck(req, _res, next) {
   if (req.session && req.session.userEmail) {
     req.isLoggedInUser = true
   } else {
@@ -26,12 +26,12 @@ function logincheck(req, res, next) {
   next();
 }
 
-router.get('/health', (req, res, next) => {
+router.get('/health', (_req, res) => {
   return res.status(200).json({health:"OK"})
 })
 
 /* GET home page. */
-router.get('/', logincheck, csrfProtection, (req, res, next) => {
+router.get('/', logincheck, csrfProtection, (req, res) => {
   res.render('index', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail, _csrf: req.csrfToken() });
 });
 

@@ -26,7 +26,7 @@ passport.serializeUser(function(user, done) {
   done(null, user.id);
 });
 
-passport.deserializeUser(function(id, done) {
+passport.deserializeUser(function(_id, done) {
   done({
     id: 1, 
     name: "User1"
@@ -101,12 +101,12 @@ app.use('/auth', authenticate, authRouter);
 app.use('/', indexRouter);
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
+app.use((_req, _res, next) => {
   next(createError(404));
 });
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   // set locals, only providing error in development
   console.log(err);
   res.locals.message = err.message;

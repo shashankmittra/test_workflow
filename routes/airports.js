@@ -20,7 +20,7 @@ const utils = require('../utils');
 const router = express.Router();
 
 /* GET airport listing. */
-router.get('/', (req, res, next) => {
+router.get('/', (req, res) => {
     const search_query = req.query.q;
     let results;
     if(!search_query) {

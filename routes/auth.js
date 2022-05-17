@@ -15,14 +15,14 @@ const express = require('express');
 
 const router = express.Router();
 
-router.post('/login', (req, res, next) => {
+router.post('/login', (req, res) => {
     return res.status(200).send({
         ...req.user,
         message: "Login successful"
     });
 });
 
-router.get('/health', (req, res, next) => {
+router.get('/health', (_req, res) => {
   return res.status(200).json({ health:"OK from authenticated route" })
 })
 
