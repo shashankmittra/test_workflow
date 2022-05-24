@@ -19,6 +19,13 @@ test:
   script: |
     #!/usr/bin/env bash
 
+    collect-evidence \
+      --tool-type "jest" \
+      --status "pending" \
+      --evidence-type "com.ibm.unit_tests" \
+      --asset-type "repo" \
+      --asset-key "app-repo"
+
     cd ../"$(load_repo app-repo path)"
     npm ci
     
@@ -31,7 +38,7 @@ test:
     if [ "$exit_code" != "0" ]; then
       status="failure"
     fi
-    
+
     collect-evidence \
       --tool-type "jest" \
       --status "$status" \
@@ -94,6 +101,13 @@ acceptance-test:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.12@sha256:ff4053b0bca784d6d105fee1d008cfb20db206011453071e86b69ca3fde706a4
   script: |
     #!/usr/bin/env bash
+    
+    collect-evidence \
+      --tool-type "jest" \
+      --status "pending" \
+      --evidence-type "com.ibm.acceptance_tests" \
+      --asset-type "repo" \
+      --asset-key "app-repo"
 
     source /root/.nvm/nvm.sh
     npm ci
