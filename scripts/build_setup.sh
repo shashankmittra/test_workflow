@@ -12,6 +12,9 @@ get-icr-region() {
     ibm:yp:us-south)
       echo us
       ;;
+    ibm:yp:us-east)
+      echo us
+      ;;
     ibm:yp:eu-de)
       echo de
       ;;
@@ -30,12 +33,15 @@ get-icr-region() {
     ibm:yp:br-sao)
       echo br
       ;;
-    ibm:yp:ca-tor)
-      echo ca
-      ;;
     ibm:yp:eu-fr2)
       echo fr2
       ;;
+    ibm:yp:ca-tor)
+      echo ca
+      ;;
+    stg)
+      echo stg
+      ;;  
     *)
       echo "Unknown region: $1" >&2
       exit 1
@@ -47,12 +53,14 @@ get-icr-region() {
 # add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 # apt-get update && apt-get install docker-ce-cli
 
+IBMCLOUD_API=$(get_env ibmcloud-api "https://cloud.ibm.com")
+
 if [[ -s "/config/repository" ]]; then
   REPOSITORY="$(cat /config/repository)"
-  IMAGE_NAME=$(basename "$REPOSITORY" .git)
 else
-  IMAGE_NAME="$(cat /config/app-name)"
+  REPOSITORY="$(load_repo app-repo url)"
 fi
+IMAGE_NAME=$(basename "$REPOSITORY" .git)
 IMAGE_TAG="$(date +%Y%m%d%H%M%S)-$(cat /config/git-branch)-$(cat /config/git-commit)"
 
 if [[ -f "/config/break_glass" ]]; then
@@ -71,7 +79,7 @@ else
   echo "Checking registry namespace: ${ICR_REGISTRY_NAMESPACE}"
   IBM_LOGIN_REGISTRY_REGION=$(< /config/registry-region awk -F: '{print $3}')
   ibmcloud config --check-version false
-  ibmcloud login --apikey @/config/api-key -r "$IBM_LOGIN_REGISTRY_REGION"
+  ibmcloud login --apikey @/config/api-key -r "$IBM_LOGIN_REGISTRY_REGION" -a "$IBMCLOUD_API"
   NS=$( ibmcloud cr namespaces | sed 's/ *$//' | grep -x "${ICR_REGISTRY_NAMESPACE}" ||: )
 
   if [ -z "${NS}" ]; then

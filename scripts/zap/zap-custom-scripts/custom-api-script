@@ -23,10 +23,18 @@ npm install -g json-refs
 echo "Resolving schema refs in swagger"
 json-refs resolve "${SWAGGER_JSON_FILE}" > _resolved.json
 
-# wrap the swagger into a complete definitions file as expected by the zap scanner
-jq '{
+# Add a global exclusion to prevent a false positive issue with this sample application like:
+# Unexpected Content-Type was returned
+# A Content-Type of text/html was returned by the server.This is not one of the types expected to be returned by an API.
+# Raised by the 'Alert on Unexpected Content Types' script
+echo "Target application server url is: $TARGET_APPLICATION_SERVER_URL"
+APP_URL_REGEX=$(echo $TARGET_APPLICATION_SERVER_URL | sed 's:/*$::')
+app_url_regex="^${APP_URL_REGEX//\//\\\/}\$"
+
+jq --arg app_url_regex "${app_url_regex}" '{
     "excludeScanTypes": [],
     "apisToScan": [{"path":"/health", "method":"get"}],
+    "globalExcludeUrls": [ $app_url_regex ],
     "apiDefinitionJson": .
 }' "$(pwd)/_resolved.json" > "${API_DATA_FILE}"
 
