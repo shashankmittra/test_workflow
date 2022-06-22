@@ -41,7 +41,7 @@ router.post('/', (req, res, next) => {
     req.session.userEmail = req.body.username;
     return res.redirect('/');
   } else {
-    var err = new Error('All fields required.');
+    let err = new Error('All fields required.');
     err.status = 400;
     return next(err);
   }
