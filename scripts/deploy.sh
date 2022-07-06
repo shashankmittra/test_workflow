@@ -56,7 +56,12 @@ if [ ! -z "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" 
     if [ ! -z "${INGRESS_RULES_INDEX}" ]; then
       INGRESS_RULE_HOST=$(yq r --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.rules["${INGRESS_RULES_INDEX}"].host)
       DOMAIN_ADDRESS="${IBMCLOUD_IKS_CLUSTER_NAMESPACE}"."${CLUSTER_INGRESS_SUBDOMAIN}"
-      yq w --inplace --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.rules["${INGRESS_RULES_INDEX}"].host ${INGRESS_RULE_HOST/cluster-ingress-subdomain/$DOMAIN_ADDRESS}
+      # IKS provides a valid TLS certificate for *.Cluster-ingress-sub-domian
+      # Update the host with format {App-Name}-{Cluster-Namespace}.{Cluster-ingress-subdomain}
+      # Example :- https://hello-app-prod.gen2phm-b-57a8db4f565402d4797cc1d3399c50e2-0000.eu-de.containers.appdomain.cloud/
+      # hello-app is from INGRESS_RULES_INDEX
+      # prod is cluster namespace
+      yq w --inplace --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.rules["${INGRESS_RULES_INDEX}"].host ${INGRESS_RULE_HOST/.cluster-ingress-subdomain/-$DOMAIN_ADDRESS}
     fi    
   fi
 fi
