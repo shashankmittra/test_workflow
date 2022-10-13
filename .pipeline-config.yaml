@@ -75,7 +75,6 @@ acceptance-test:
   script: |
     #!/usr/bin/env bash
 
-    source /root/.nvm/nvm.sh
     npm ci
     export APP_URL=$(get_env app-url)
     # save exit code for old evidence collection

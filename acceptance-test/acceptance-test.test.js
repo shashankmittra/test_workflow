@@ -7,7 +7,7 @@ const appUrl = process.env.APP_URL;
 
 describe('Acceptance test', () => {
     it('Check application URL', async () => {
-        const result = await axios.get(appUrl, {});
+        const result = await axios.get(`${appUrl}/health`, {});
         expect(result.status).toEqual(200);
     });
- });
+});
