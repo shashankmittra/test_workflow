@@ -9,7 +9,7 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-FROM registry.access.redhat.com/ubi8/nodejs-16@sha256:7a13834164db1458d8d97df2eca9f117cc4472b60c9ce7761c1146fd9a7effcd
+FROM registry.access.redhat.com/ubi9/nodejs-16@sha256:d884fc989a81991c906244d77982784f7bc7c651782a2e2f200873de306f9679
 USER root
 RUN yum update -y && yum upgrade -y
 RUN npm -v
