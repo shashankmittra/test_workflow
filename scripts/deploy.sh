@@ -7,7 +7,7 @@ mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 yq write --inplace "$DEPLOYMENT_FILE" --doc "*" "metadata.namespace" "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}"
 
 echo "Updating Image Pull Secrets Name in the deployment file......"
-SECRET_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="secret") | .key')
+SECRET_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select((.value.kind | ascii_downcase=="secret") and (.value.type | ascii_downcase=="kubernetes.io/dockerconfigjson")) | .key')
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "metadata.name" "${IMAGE_PULL_SECRET_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
@@ -25,6 +25,11 @@ else
 fi
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjson]" "${REGISTRY_AUTH}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+
+echo "Updating Cookie secrets in the deployment file......"
+COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret")"
+sed "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}"
+cat "${DEPLOYMENT_FILE}"
 
 echo "Cluster IP Service should be unique accross all the namespace, updating Cluster IP service name with namespace..."
 CIP_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="ClusterIP" ) | .key')

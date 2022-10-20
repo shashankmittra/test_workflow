@@ -91,6 +91,17 @@ spec:
   selector:
     app: node-compliance-app
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cookie-secret
+  namespace: sample
+  labels:
+    app: node-compliance-app  
+data:
+  cookie-secret: COOKIE_SECRET
+type: Opaque
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

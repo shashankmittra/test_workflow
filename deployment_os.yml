@@ -108,6 +108,17 @@ spec:
             port:
               number: 8080
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cookie-secret
+  namespace: sample
+  labels:
+    app: node-compliance-app  
+data:
+  cookie-secret: COOKIE_SECRET
+type: Opaque
+---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
