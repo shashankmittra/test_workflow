@@ -1,6 +1,3 @@
 [
-    {
-        "cve": "SNYK-JS-CSURF-3021144",
-        "alwaysOmit": true
-      }
+    
 ]
