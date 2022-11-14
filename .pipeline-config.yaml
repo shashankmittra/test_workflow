@@ -19,6 +19,13 @@ test:
   script: |
     #!/usr/bin/env bash
 
+    collect-evidence \
+      --tool-type "jest" \
+      --status "pending" \
+      --evidence-type "com.ibm.unit_tests" \
+      --asset-type "repo" \
+      --asset-key "app-repo"
+
     cd ../"$(load_repo app-repo path)"
     npm ci
 
@@ -37,7 +44,8 @@ test:
       --status "$status" \
       --evidence-type "com.ibm.unit_tests" \
       --asset-type "repo" \
-      --asset-key "app-repo"
+      --asset-key "app-repo" \
+      --attachment "unit-test-result.json"
     exit $exit_code
 
 containerize:
@@ -75,6 +83,13 @@ acceptance-test:
   script: |
     #!/usr/bin/env bash
 
+    collect-evidence \
+      --tool-type "jest" \
+      --status "pending" \
+      --evidence-type "com.ibm.acceptance_tests" \
+      --asset-type "repo" \
+      --asset-key "app-repo"
+
     npm ci
     export APP_URL=$(get_env app-url)
     # save exit code for old evidence collection
@@ -92,7 +107,8 @@ acceptance-test:
       --status "$status" \
       --evidence-type "com.ibm.acceptance_tests" \
       --asset-type "repo" \
-      --asset-key "app-repo"
+      --asset-key "app-repo" \
+      --attachment "acceptance-test-result.json"
     exit $exit_code
 
 release:
