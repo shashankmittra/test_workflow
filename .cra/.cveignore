@@ -22,5 +22,9 @@
     {
         "cve": "CVE-2021-44532",
         "alwaysOmit": true
+    },
+    {
+        "cve": "SNYK-PYTHON-SETUPTOOLS-3113904",
+        "alwaysOmit": true
     }
 ]
