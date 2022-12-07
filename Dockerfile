@@ -13,6 +13,9 @@ FROM registry.access.redhat.com/ubi8/nodejs-16@sha256:4b3aa4f8f4b98c2a0334211528
 USER root
 RUN yum update -y && yum upgrade -y
 
+# to mitigate CVE-2022-3517
+RUN yum remove -y nodejs-nodemon
+
 # some change from cra for which this is workaround from David Lopez, see: https://ibm-cloudplatform.slack.com/archives/C14UWH9C4/p1666718978490169?thread_ts=1666226706.155919&cid=C14UWH9C4
 RUN rm -rf /usr/lib/python3.6/site-packages/pip-9.0.3.dist-info
 
