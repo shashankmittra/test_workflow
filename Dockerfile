@@ -9,12 +9,12 @@
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-FROM registry.access.redhat.com/ubi8/nodejs-16@sha256:4b3aa4f8f4b98c2a03342115283d10a50be62d662cd9c2153fddf1739e25766a
+FROM registry.access.redhat.com/ubi8/nodejs-18@sha256:a6d1a446d42e17f503bf24a4e3b598f382d07f2242b22246e1c3114662f48245
 USER root
 RUN yum update -y && yum upgrade -y
 
-# to mitigate CVE-2022-3517
-RUN yum remove -y nodejs-nodemon
+# to mitigate CVE-2022-3517 CVE-2022-43548
+RUN yum remove -y nodejs-nodemon nodejs-docs nodejs-full-i18n
 
 # some change from cra for which this is workaround from David Lopez, see: https://ibm-cloudplatform.slack.com/archives/C14UWH9C4/p1666718978490169?thread_ts=1666226706.155919&cid=C14UWH9C4
 RUN rm -rf /usr/lib/python3.6/site-packages/pip-9.0.3.dist-info
