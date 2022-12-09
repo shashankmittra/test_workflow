@@ -4,26 +4,6 @@
         "alwaysOmit": true
     },
     {
-        "cve": "CVE-2021-44531",
-        "alwaysOmit": true
-    },
-    {
-        "cve": "CVE-2022-21824",
-        "alwaysOmit": true
-    },
-    {
-        "cve": "CVE-2022-35256",
-        "alwaysOmit": true
-    },
-    {
-        "cve": "CVE-2021-44533",
-        "alwaysOmit": true
-    },
-    {
-        "cve": "CVE-2021-44532",
-        "alwaysOmit": true
-    },
-    {
         "cve": "SNYK-PYTHON-SETUPTOOLS-3113904",
         "alwaysOmit": true
     }
