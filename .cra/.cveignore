@@ -1,10 +1,10 @@
 [
     {
-        "cve": "CVE-2022-35255",
+        "cve": "SNYK-PYTHON-SETUPTOOLS-3113904",
         "alwaysOmit": true
     },
     {
-        "cve": "SNYK-PYTHON-SETUPTOOLS-3113904",
+        "cve": "CVE-2022-40897",
         "alwaysOmit": true
     }
 ]
