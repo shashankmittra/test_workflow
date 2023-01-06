@@ -44,7 +44,7 @@ if [[ "${TAG}" ]]; then
         TEMP_TAG=${tags[i]}
         TEMP_TAG=$(echo "$TEMP_TAG" | sed -e 's/^[[:space:]]*//')
         echo "adding tag $i $TEMP_TAG"
-        ADDITIONAL_IMAGE_TAG="$ICR_REGISTRY_REGION.icr.io"/"$ICR_REGISTRY_NAMESPACE"/"$IMAGE_NAME":"$TEMP_TAG"
+        ADDITIONAL_IMAGE_TAG="$ICR_REGISTRY_DOMAIN/$ICR_REGISTRY_NAMESPACE/$IMAGE_NAME:$TEMP_TAG"
         docker tag "$IMAGE" "$ADDITIONAL_IMAGE_TAG"
         docker push "$ADDITIONAL_IMAGE_TAG"
 
