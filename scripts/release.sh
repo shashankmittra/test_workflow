@@ -9,10 +9,6 @@
 . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
 
 APP_REPO="$(load_repo app-repo url)"
-APP_REPO_ORG=${APP_REPO%/*}
-APP_REPO_ORG=${APP_REPO_ORG##*/}
-APP_REPO_NAME=${APP_REPO##*/}
-APP_REPO_NAME=${APP_REPO_NAME%.git}
 
 COMMIT_SHA="$(load_repo app-repo commit)"
 
@@ -51,9 +47,9 @@ function upload_deployment_files_artifacts() {
         id=$(curl --header "PRIVATE-TOKEN: ${token}" "${APP_API_URL}/projects/$(echo ${APP_REPO_OWNER}/${APP_REPO_NAME} | jq -rR @uri)" | jq .id)
         DEPLOYMENT_ARTIFACT="${APP_API_URL}/projects/${id}/repository/files/${deployment_file}/raw?ref=${COMMIT_SHA}"
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "github_integrated" ]; then
-        DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+        DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
     else
-        DEPLOYMENT_ARTIFACT="https://raw.githubusercontent.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+        DEPLOYMENT_ARTIFACT="https://raw.githubusercontent.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
     fi
     DEPLOYMENT_ARTIFACT_PATH="$(load_repo app-repo path)"
     DEPLOYMENT_ARTIFACT_DIGEST="$(shasum -a256 "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/${deployment_file}" | awk '{print $1}')"
