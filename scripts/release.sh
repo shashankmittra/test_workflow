@@ -48,7 +48,7 @@ function upload_deployment_files_artifacts() {
     deployment_file=$1
     deployment_type=$2
     if [ "$APP_ABSOLUTE_SCM_TYPE" == "hostedgit" ]; then
-        id=$(curl --header "PRIVATE-TOKEN: ${token}" ${APP_API_URL}/projects/${APP_REPO_ORG}%2F${APP_REPO_NAME} | jq .id)
+        id=$(curl --header "PRIVATE-TOKEN: ${token}" "${APP_API_URL}/projects/$(echo ${APP_REPO_OWNER}/${APP_REPO_NAME} | jq -rR @uri)" | jq .id)
         DEPLOYMENT_ARTIFACT="${APP_API_URL}/projects/${id}/repository/files/${deployment_file}/raw?ref=${COMMIT_SHA}"
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "github_integrated" ]; then
         DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_ORG}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"

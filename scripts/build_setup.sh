@@ -71,9 +71,14 @@ if [[ -f "/config/break_glass" ]]; then
   jq -j --arg instance_id "$ARTIFACTORY_INTEGRATION_ID" '.services[] | select(.instance_id == $instance_id) | .parameters.token' /toolchain/toolchain.json | docker login -u "$(jq -r '.parameters.user_id' /config/artifactory)" --password-stdin "$(jq -r '.parameters.repository_url' /config/artifactory)"
 else
   ICR_REGISTRY_NAMESPACE="$(cat /config/registry-namespace)"
-  ICR_REGISTRY_REGION="$(get-icr-region "$(cat /config/registry-region)")"
-  IMAGE="$ICR_REGISTRY_REGION.icr.io/$ICR_REGISTRY_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG"
-  docker login -u iamapikey --password-stdin "$ICR_REGISTRY_REGION.icr.io" < /config/api-key
+  ICR_REGISTRY_DOMAIN="$(get_env registry-domain "")"
+  if [ -z "$ICR_REGISTRY_DOMAIN" ]; then
+    # Default to icr domain from registry-region
+    ICR_REGISTRY_REGION="$(get-icr-region "$(cat /config/registry-region)")"
+    ICR_REGISTRY_DOMAIN="$ICR_REGISTRY_REGION.icr.io"
+  fi
+  IMAGE="$ICR_REGISTRY_DOMAIN/$ICR_REGISTRY_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG"
+  docker login -u iamapikey --password-stdin "$ICR_REGISTRY_DOMAIN" < /config/api-key
 
   # Create the namespace if needed to ensure the push will be can be successfull
   echo "Checking registry namespace: ${ICR_REGISTRY_NAMESPACE}"
