@@ -8,6 +8,16 @@
 # shellcheck source=/dev/null
 . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
 
+# Check the status of pipeline and then release the artifacts to inventory
+
+ONE_PIPELINE_STATUS=$(get_env one-pipeline-status 0)
+if [ -n "$(get_env skip-inventory-update-on-failure "")" ]; then
+    if [ $ONE_PIPELINE_STATUS -eq 1 ]; then
+          echo "Skipping release stage as some of the pipeline stages are not successfull."
+          exit 1
+    fi
+fi
+
 APP_REPO="$(load_repo app-repo url)"
 
 COMMIT_SHA="$(load_repo app-repo commit)"
