@@ -2,10 +2,27 @@
   "name": "sample-nodeapp",
   "version": "1.0.0",
   "private": true,
+  "jest": {
+    "verbose": true,
+    "reporters": [
+      "default",
+      "jest-junit"
+    ]
+  },
+  "jest-junit": {
+    "suiteName": "jest tests",
+    "outputDirectory": ".",
+    "outputName": "jest-junit.xml",
+    "uniqueOutputName": "false",
+    "classNameTemplate": "{classname}-{title}",
+    "titleTemplate": "{classname}-{title}",
+    "ancestorSeparator": " › ",
+    "usePathForSuiteName": "false"
+  },
   "scripts": {
     "start": "node ./bin/www",
-    "acceptance-test": "jest ./acceptance-test --json --outputFile=acceptance-test-result.json",
-    "test": "jest ./test --json --outputFile=unit-test-result.json"
+    "acceptance-test": "jest ./acceptance-test",
+    "test": "jest ./test"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
@@ -19,6 +36,7 @@
     "helmet": "^4.6.0",
     "http-errors": "~1.6.3",
     "jest": "^28.1.1",
+    "jest-junit": "^15.0.0",
     "morgan": "~1.9.1",
     "nocache": "^3.0.1",
     "passport": "^0.6.0",

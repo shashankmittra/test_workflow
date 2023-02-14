@@ -18,35 +18,9 @@ test:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.7@sha256:0444aa3cc5032ba4d7f7a59a4177dd43dc1126ad902f09079b0a66156bbe4bcf
   script: |
     #!/usr/bin/env bash
-
-    collect-evidence \
-      --tool-type "jest" \
-      --status "pending" \
-      --evidence-type "com.ibm.unit_tests" \
-      --asset-type "repo" \
-      --asset-key "app-repo"
-
-    cd ../"$(load_repo app-repo path)"
-    npm ci
-
-    # save exit code for old evidence collection
-    exit_code=0
-    npm test || exit_code=$?
     
-    # save status for new evidence collection
-    status="success"
-    if [ "$exit_code" != "0" ]; then
-      status="failure"
-    fi
-
-    collect-evidence \
-      --tool-type "jest" \
-      --status "$status" \
-      --evidence-type "com.ibm.unit_tests" \
-      --asset-type "repo" \
-      --asset-key "app-repo" \
-      --attachment "unit-test-result.json"
-    exit $exit_code
+    source scripts/run_test.sh
+    run_test test com.ibm.unit_tests unit-test-result.xml 1
 
 containerize:
   dind: true
@@ -83,33 +57,9 @@ acceptance-test:
   script: |
     #!/usr/bin/env bash
 
-    collect-evidence \
-      --tool-type "jest" \
-      --status "pending" \
-      --evidence-type "com.ibm.acceptance_tests" \
-      --asset-type "repo" \
-      --asset-key "app-repo"
-
-    npm ci
     export APP_URL=$(get_env app-url)
-    # save exit code for old evidence collection
-    exit_code=0
-    npm run acceptance-test || exit_code=$?
-    
-    # save status for new evidence collection
-    status="success"
-    if [ "$exit_code" != "0" ]; then
-      status="failure"
-    fi
-    
-    collect-evidence \
-      --tool-type "jest" \
-      --status "$status" \
-      --evidence-type "com.ibm.acceptance_tests" \
-      --asset-type "repo" \
-      --asset-key "app-repo" \
-      --attachment "acceptance-test-result.json"
-    exit $exit_code
+    source scripts/run_test.sh    
+    run_test acceptance-test com.ibm.acceptance_tests acceptance-test-result.xml 0
 
 release:
   abort_on_failure: false
