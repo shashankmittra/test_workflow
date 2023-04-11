@@ -7,7 +7,6 @@ This sample contains an simple Node.js microservice that can be deployed with [C
 - [Node.js Sample Application](#nodejs-sample-application)
   - [Contents](#contents)
   - [Run the sample](#run-the-sample)
-  - [Documentation and troubleshooting guideline:](#documentation-and-troubleshooting-guideline)
 
 ## Run the sample
 - Prerequisites
@@ -21,7 +20,3 @@ This sample contains an simple Node.js microservice that can be deployed with [C
     - Run `npm install` from the root folder to install the app’s dependencies.
 - Run `npm start` to start the app
 - Access the running app in a browser at http://localhost:8080
-
-## Documentation and troubleshooting guideline:
-
-Can be found [here](https://cloud.ibm.com/docs/ContinuousDelivery?topic=ContinuousDelivery-troubleshoot-devsecops).
