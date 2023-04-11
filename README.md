@@ -18,5 +18,5 @@ This sample contains an simple Node.js microservice that can be deployed with [C
     ```
 - Installing Dependencies
     - Run `npm install` from the root folder to install the app’s dependencies.
-- Run `npm start` to start the app
+- Run `npm start` to start the app.
 - Access the running app in a browser at http://localhost:8080
