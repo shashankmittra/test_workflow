@@ -7,6 +7,7 @@
 
 # shellcheck source=/dev/null
 . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
+. "${ONE_PIPELINE_PATH}/tools/logging"
 
 # Check the status of pipeline and then release the artifacts to inventory
 
@@ -58,8 +59,19 @@ function upload_deployment_files_artifacts() {
         DEPLOYMENT_ARTIFACT="${APP_API_URL}/projects/${id}/repository/files/${deployment_file}/raw?ref=${COMMIT_SHA}"
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "github_integrated" ]; then
         DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+    elif [ "$APP_ABSOLUTE_SCM_TYPE" == "githubconsolidated" ]; then
+        git_type="$(jq -r \
+    --arg git_repo "$(get_env APP_REPO)" \
+    '[ .services[] | select (.dashboard_url == $git_repo) | .parameters.git_id ] | first' \
+    "$TOOLCHAIN_CONFIG_JSON")"
+        if [ "$git_type" == "integrated" ]; then
+            DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+        else
+            DEPLOYMENT_ARTIFACT="https://raw.githubusercontent.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+        fi
     else
-        DEPLOYMENT_ARTIFACT="https://raw.githubusercontent.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+        warning "$APP_ABSOLUTE_SCM_TYPE is not supported"
+        exit 1
     fi
     DEPLOYMENT_ARTIFACT_PATH="$(load_repo app-repo path)"
     DEPLOYMENT_ARTIFACT_DIGEST="$(shasum -a256 "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/${deployment_file}" | awk '{print $1}')"
