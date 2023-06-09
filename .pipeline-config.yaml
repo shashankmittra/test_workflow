@@ -22,7 +22,10 @@ test:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.7@sha256:0444aa3cc5032ba4d7f7a59a4177dd43dc1126ad902f09079b0a66156bbe4bcf
   script: |
     #!/usr/bin/env bash
-    
+
+    # ensure we're located in the source app repo
+    cd "$WORKSPACE/$(load_repo app-repo path)"
+
     source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/run_test.sh
     run_test test com.ibm.unit_tests unit-test-result.xml 1
 
