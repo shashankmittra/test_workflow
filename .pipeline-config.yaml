@@ -1,3 +1,7 @@
+# Documentation on available configuration
+# https://cloud.ibm.com/docs/devsecops?topic=devsecops-cd-devsecops-apps-byoa
+# https://cloud.ibm.com/docs/devsecops?topic=devsecops-custom-scripts
+
 version: '1'
 
 setup:
@@ -10,7 +14,7 @@ setup:
       set -x
     fi
     if [[ "$(get_env pipeline_namespace)" == *"pr"* ||  "$(get_env pipeline_namespace)" == *"ci"* ]]; then
-      source scripts/code_setup.sh
+      source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/code_setup.sh
     fi
 
 test:
@@ -18,8 +22,11 @@ test:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.7@sha256:0444aa3cc5032ba4d7f7a59a4177dd43dc1126ad902f09079b0a66156bbe4bcf
   script: |
     #!/usr/bin/env bash
-    
-    source scripts/run_test.sh
+
+    # ensure we're located in the source app repo
+    cd "$WORKSPACE/$(load_repo app-repo path)"
+
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/run_test.sh
     run_test test com.ibm.unit_tests unit-test-result.xml 1
 
 containerize:
@@ -34,8 +41,11 @@ containerize:
       set -x
     fi
 
-    source scripts/build_setup.sh
-    source scripts/build.sh
+    # ensure we build the app repo Dockerfile
+    cd "$WORKSPACE/$(load_repo app-repo path)"
+
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/build_setup.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/build.sh
 
 deploy:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.19@sha256:482d28e51d5acc65471b366bbdcabc97f69e49da933337a7c42f45907cd63173
@@ -48,8 +58,8 @@ deploy:
       set -x
     fi
 
-    source scripts/deploy_setup.sh
-    source scripts/deploy.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/deploy_setup.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/deploy.sh
 
 acceptance-test:
   abort_on_failure: false
@@ -58,7 +68,7 @@ acceptance-test:
     #!/usr/bin/env bash
 
     export APP_URL=$(get_env app-url)
-    source scripts/run_test.sh    
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/run_test.sh    
     run_test acceptance-test com.ibm.acceptance_tests acceptance-test-result.xml 0
 
 release:
@@ -73,7 +83,7 @@ release:
       set -x
     fi
 
-    source scripts/release.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/release.sh
 
 dynamic-scan:
   dind: true
@@ -90,9 +100,9 @@ dynamic-scan:
           echo "Please provide the app-url as the running application url. Recommended to use stage/test environment to run the Dynamic scan." >&2
           exit 1
         fi
-        source scripts/zap/zap-cc-config
+        source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/zap/zap-cc-config
       fi
-      source scripts/zap/trigger-async-zap
+      source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/zap/trigger-async-zap
     fi
 
 owasp-zap:
@@ -102,4 +112,4 @@ owasp-zap:
   script: |
     #!/usr/bin/env bash
 
-    source scripts/zap/trigger_zap_scans
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/zap/trigger_zap_scans
