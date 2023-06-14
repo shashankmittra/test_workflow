@@ -7,7 +7,7 @@
 
 # shellcheck source=/dev/null
 . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
-. "${ONE_PIPELINE_PATH}/tools/logging"
+. "${ONE_PIPELINE_PATH}/internal/tools/logging"
 
 # Check the status of pipeline and then release the artifacts to inventory
 
