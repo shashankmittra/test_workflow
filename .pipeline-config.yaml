@@ -48,7 +48,7 @@ containerize:
     source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/build.sh
 
 deploy:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.19@sha256:482d28e51d5acc65471b366bbdcabc97f69e49da933337a7c42f45907cd63173
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.39@sha256:499559f10a289300828536196947da164c09cece319e3ce3f30fd408cde55c5d
   script: |
     #!/usr/bin/env bash
 
@@ -73,7 +73,7 @@ acceptance-test:
 
 release:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.19@sha256:482d28e51d5acc65471b366bbdcabc97f69e49da933337a7c42f45907cd63173
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.39@sha256:499559f10a289300828536196947da164c09cece319e3ce3f30fd408cde55c5d
   script: |
     #!/usr/bin/env bash
 
