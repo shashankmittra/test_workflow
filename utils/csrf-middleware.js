@@ -3,7 +3,8 @@ const csrf = require('csurf');
 const csrfProtection = csrf({ 
     cookie: {
         httpOnly: true,
-        sameSite: 'strict'
+        sameSite: 'strict',
+        secure: true        
     },
  });
 
