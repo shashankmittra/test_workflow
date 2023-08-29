@@ -3,7 +3,6 @@
 # https://cloud.ibm.com/docs/devsecops?topic=devsecops-custom-scripts
 
 version: '1'
-
 setup:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
   script: |
@@ -22,11 +21,16 @@ test:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
   script: |
     #!/usr/bin/env bash
-
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
     # ensure we're located in the source app repo
     cd "$WORKSPACE/$(load_repo app-repo path)"
-
     source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/run_test.sh
+    save_deployment_artifact deployment_iks.yml IKS
+    save_deployment_artifact deployment_os.yml OPENSHIFT
     run_test test com.ibm.unit_tests unit-test-result.xml 1
 
 containerize:
@@ -106,7 +110,7 @@ dynamic-scan:
     fi
 
 owasp-zap:
-  dind: true 
+  dind: true
   abort_on_failure: true
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
   script: |

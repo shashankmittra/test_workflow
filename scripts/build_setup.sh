@@ -62,6 +62,7 @@ else
 fi
 IMAGE_NAME=$(basename "$REPOSITORY" .git)
 IMAGE_TAG="$(date +%Y%m%d%H%M%S)-$(cat /config/git-branch)-$(cat /config/git-commit)"
+IMAGE_TAG=${IMAGE_TAG////_}
 
 if [[ -f "/config/break_glass" ]]; then
   ARTIFACTORY_URL="$(jq -r .parameters.repository_url /config/artifactory)"

@@ -19,14 +19,55 @@ if [ "$(get_env skip-inventory-update-on-failure 1)" == "1" ]; then
     fi
 fi
 
-APP_REPO="$(load_repo app-repo url)"
+function upload_deployment_artifact (){
+    while read -r artifact; do
+    type="$(load_artifact "${artifact}" type)"
+    if [[ ${type} != "image" ]]; then
+        DEPLOYMENT_ARTIFACT_NAME="$(load_artifact "${artifact}" name)"
+        DEPLOYMENT_ARTIFACT_PROVENANCE="$(load_artifact "${artifact}" provenance)"
+        DEPLOYMENT_ARTIFACT_DIGEST="$(load_artifact "${artifact}" digest)"
+        DEPLOYMENT_ARTIFACT_SIGN="$(load_artifact "${artifact}" signature)"
+        APP_ARTIFACTS='{"origin": "'${DEPLOYMENT_ARTIFACT_PROVENANCE}'" }'
+        cocoa inventory add \
+            --name="$DEPLOYMENT_ARTIFACT_NAME" \
+            --artifact="$DEPLOYMENT_ARTIFACT_NAME.yml" \
+            --type="deployment" \
+            --app-artifacts="${APP_ARTIFACTS}" \
+            --provenance="${DEPLOYMENT_ARTIFACT_PROVENANCE}" \
+            --sha256="${DEPLOYMENT_ARTIFACT_DIGEST}" \
+            --signature="${DEPLOYMENT_ARTIFACT_SIGN}" \
+            "${params[@]}"
+    fi
+    done < <(list_artifacts)
+}
 
-COMMIT_SHA="$(load_repo app-repo commit)"
-
-APP_ABSOLUTE_SCM_TYPE=$(get_absolute_scm_type "$APP_REPO")
+function upload_image_artifact (){
+    read -r APP_REPO_NAME < <(get_repo_name "$(get_env APP_REPO)")
+    while read -r artifact; do
+    type="$(load_artifact "${artifact}" type)"
+    if [[ ${type} == "image" ]]; then
+        image="$(load_artifact "${artifact}" name)"
+        signature="$(load_artifact "${artifact}" signature)"
+        digest="$(load_artifact "${artifact}" digest)"
+        tags="$(load_artifact "${artifact}" tags)"
+        APP_NAME="$(get_env app-name)"
+        APP_ARTIFACTS='{ "app": "'${APP_NAME}'", "tags": "'${tags}'" }'
+        cocoa inventory add \
+            --artifact="${image}@${digest}" \
+            --name="${APP_REPO_NAME}" \
+            --app-artifacts="${APP_ARTIFACTS}" \
+            --signature="${signature}" \
+            --provenance="${image}@${digest}" \
+            --sha256="${digest}" \
+            --type="image" \
+            "${params[@]}"
+    fi
+    done < <(list_artifacts)
+}
 
 INVENTORY_TOKEN_PATH="./inventory-token"
 read -r INVENTORY_REPO_NAME INVENTORY_REPO_OWNER INVENTORY_SCM_TYPE INVENTORY_API_URL < <(get_repo_params "$(get_env INVENTORY_URL)" "$INVENTORY_TOKEN_PATH")
+
 #
 # collect common parameters into an array
 #
@@ -43,71 +84,13 @@ params=(
     --git-api-url="$INVENTORY_API_URL"
 )
 
+
 #
-# add the deployment file as a build artifact to the inventory
+# add all deployment files as build artifacts to the inventory
 #
-APP_TOKEN_PATH="./app-token"
-read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(get_env APP_REPO)" "$APP_TOKEN_PATH")
-token=$(cat $APP_TOKEN_PATH)
-
-function upload_deployment_files_artifacts() {
-
-    deployment_file=$1
-    deployment_type=$2
-    if [ "$APP_ABSOLUTE_SCM_TYPE" == "hostedgit" ]; then
-        id=$(curl --header "PRIVATE-TOKEN: ${token}" "${APP_API_URL}/projects/$(echo ${APP_REPO_OWNER}/${APP_REPO_NAME} | jq -rR @uri)" | jq .id)
-        DEPLOYMENT_ARTIFACT="${APP_API_URL}/projects/${id}/repository/files/${deployment_file}/raw?ref=${COMMIT_SHA}"
-    elif [ "$APP_ABSOLUTE_SCM_TYPE" == "github_integrated" ]; then
-        DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
-    elif [ "$APP_ABSOLUTE_SCM_TYPE" == "githubconsolidated" ]; then
-        git_type="$(jq -r \
-    --arg git_repo "$(get_env APP_REPO)" \
-    '[ .services[] | select (.dashboard_url == $git_repo) | .parameters.git_id ] | first' \
-    "$TOOLCHAIN_CONFIG_JSON")"
-        if [ "$git_type" == "integrated" ]; then
-            DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
-        else
-            DEPLOYMENT_ARTIFACT="https://raw.githubusercontent.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
-        fi
-    else
-        warning "$APP_ABSOLUTE_SCM_TYPE is not supported"
-        exit 1
-    fi
-    DEPLOYMENT_ARTIFACT_PATH="$(load_repo app-repo path)"
-    DEPLOYMENT_ARTIFACT_DIGEST="$(shasum -a256 "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/${deployment_file}" | awk '{print $1}')"
-
-    cocoa inventory add \
-        --artifact="${DEPLOYMENT_ARTIFACT}" \
-        --type="deployment" \
-        --sha256="${DEPLOYMENT_ARTIFACT_DIGEST}" \
-        --signature="${DEPLOYMENT_ARTIFACT_DIGEST}" \
-        --name="${APP_REPO_NAME}_${deployment_type}_deployment" \
-        "${params[@]}"
-
-}
-upload_deployment_files_artifacts deployment_iks.yml IKS
-upload_deployment_files_artifacts deployment_os.yml OPENSHIFT
-
+upload_deployment_artifact
 
 #
 # add all built images as build artifacts to the inventory
 #
-while read -r artifact; do
-    image="$(load_artifact "${artifact}" name)"
-    signature="$(load_artifact "${artifact}" signature)"
-    digest="$(load_artifact "${artifact}" digest)"
-    tags="$(load_artifact "${artifact}" tags)"
-
-    APP_NAME="$(get_env app-name)"
-    APP_ARTIFACTS='{ "app": "'${APP_NAME}'", "tags": "'${tags}'" }'
-
-    cocoa inventory add \
-        --artifact="${image}@${digest}" \
-        --name="${APP_REPO_NAME}" \
-        --app-artifacts="${APP_ARTIFACTS}" \
-        --signature="${signature}" \
-        --provenance="${image}@${digest}" \
-        --sha256="${digest}" \
-        --type="image" \
-        "${params[@]}"
-done < <(list_artifacts)
+upload_image_artifact
