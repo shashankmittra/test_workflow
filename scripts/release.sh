@@ -30,7 +30,7 @@ function upload_deployment_artifact (){
         APP_ARTIFACTS='{"origin": "'${DEPLOYMENT_ARTIFACT_PROVENANCE}'" }'
         cocoa inventory add \
             --name="$DEPLOYMENT_ARTIFACT_NAME" \
-            --artifact="$DEPLOYMENT_ARTIFACT_NAME.yml" \
+            --artifact="$DEPLOYMENT_ARTIFACT_NAME" \
             --type="deployment" \
             --app-artifacts="${APP_ARTIFACTS}" \
             --provenance="${DEPLOYMENT_ARTIFACT_PROVENANCE}" \
