@@ -94,7 +94,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: hello-service-cip-ingress
+  name: hello-service-cip-ingress-os
   namespace: sample
 spec:
   rules:
@@ -133,3 +133,18 @@ spec:
     name: hello-service-cip
   port:
     targetPort: 8080
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: default-deny
+  namespace: sample
+spec:
+  podSelector:
+    matchLabels: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+  - ports:
+    - port: 8080
