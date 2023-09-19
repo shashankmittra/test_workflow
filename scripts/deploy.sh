@@ -21,7 +21,10 @@ REGISTRY_AUTH=""
 if [[ -n "$BREAK_GLASS" ]]; then
   REGISTRY_AUTH=$(jq .parameters.docker_config_json /config/artifactory)
 else
-  REGISTRY_AUTH=$(echo "{\"auths\":{\"${REGISTRY_URL}\":{\"auth\":\"$(echo -n iamapikey:"${IBMCLOUD_API_KEY}" | base64 -w 0)\",\"username\":\"iamapikey\",\"email\":\"iamapikey\",\"password\":\"${IBMCLOUD_API_KEY}\"}}}" | base64 -w 0)
+  # Use the API key used for the image build as IAM API key to create the image pull secret, if corresponding parameter has been set.
+  # See build_setup.sh for the container registry credentials/login
+  CR_IAM_API_KEY="$(cat /config/api-key)" # pragma: allowlist secret
+  REGISTRY_AUTH=$(echo "{\"auths\":{\"${REGISTRY_URL}\":{\"auth\":\"$(echo -n iamapikey:"${CR_IAM_API_KEY}" | base64 -w 0)\",\"username\":\"iamapikey\",\"email\":\"iamapikey\",\"password\":\"${CR_IAM_API_KEY}\"}}}" | base64 -w 0)
 fi
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjson]" "${REGISTRY_AUTH}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"

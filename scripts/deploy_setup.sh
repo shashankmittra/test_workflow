@@ -20,11 +20,22 @@ export DEPLOYMENT_FILE
 export CLUSTER_TYPE
 export TEMP_DEPLOYMENT_FILE
 
-if [ -f /config/api-key ]; then
+# add some logging about which key will be used
+echo ""
+if [ -n "$(get_env deploy-ibmcloud-api-key "")" ]; then
+  echo "Using deploy-ibmcloud-api-key to access cluster..."
+  IBMCLOUD_API_KEY="$(get_env deploy-ibmcloud-api-key)" # pragma: allowlist secret
+elif [ -n "$(get_env ibmcloud-api-key "")" ]; then
+  echo "Using ibmcloud-api-key to access cluster..."
+  IBMCLOUD_API_KEY="$(get_env ibmcloud-api-key)" # pragma: allowlist secret
+elif [ -f /config/api-key ]; then
+  echo "Using api-key (as set by the commons prepare stage) to access cluster..."
   IBMCLOUD_API_KEY="$(cat /config/api-key)" # pragma: allowlist secret
 else
-  IBMCLOUD_API_KEY="$(get_env ibmcloud-api-key)" # pragma: allowlist secret
+  echo "No api key found to access cluster. Exiting"
+  exit 1
 fi
+echo ""
 
 IBMCLOUD_API=$(get_env ibmcloud-api "https://cloud.ibm.com")
 HOME=/root
