@@ -61,7 +61,7 @@ else
   REPOSITORY="$(load_repo app-repo url)"
 fi
 IMAGE_NAME=$(basename "$REPOSITORY" .git)
-IMAGE_TAG="$(date +%Y%m%d%H%M%S)-$(cat /config/git-branch)-$(cat /config/git-commit)"
+IMAGE_TAG="$(date +%Y%m%d%H%M%S)-$(cat /config/git-branch | tr -c '[:alnum:]_.-' '_')-$(cat /config/git-commit)"
 IMAGE_TAG=${IMAGE_TAG////_}
 
 if [[ -f "/config/break_glass" ]]; then
