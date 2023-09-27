@@ -21,7 +21,6 @@
 ## Contents
 - [Scope](#scope)
 - [Run the sample](#run-the-sample)
-- [Build locally](#build-locally)
 - [Create DevSecOps toolchains](#create-devsecops-toolchains)
 - [Additional information](#additional-information)
 
