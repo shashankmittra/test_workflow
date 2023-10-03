@@ -72,6 +72,7 @@ The sections below describe additional parameters (specific to these customized 
 #### deploy stage
 | Property | Default | Description | Required |
 | -------- | :-----: | ----------- | :------: |
+| `deployment-file` | `deployment_os.yml` or `deployment_iks.yml` according to the kind of Kubernetes cluster | Kubernetes deployment file to apply to the target kubernetes cluster | |
 | `cookie-secret` | `mycookiesecret` | cookie secret value for the deployment secret | |
 | `deploy-ibmcloud-api-key` | Default to the value of `ibmcloud-api-key` | specific IBM Cloud API key to be used for the deployment to the cluster. | |
 
