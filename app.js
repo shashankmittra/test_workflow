@@ -87,7 +87,7 @@ app.use(
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-app.use(session({ secret: 'work hard', saveUninitialized: true, resave: true, cookie : { sameSite: 'strict', secure: true } }));
+app.use(session({ secret: 'work hard', saveUninitialized: true, resave: true, cookie : { httpOnly: true, sameSite: 'strict', secure: true } }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
