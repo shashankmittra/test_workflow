@@ -48,6 +48,8 @@
   "devDependencies": {
     "ansi-regex": "^6.0.1",
     "axios": "^0.24.0",
-    "mpath": "^0.8.4"
+    "mpath": "^0.8.4",
+    "@babel/core": "^7.23.2",
+    "@babel/traverse": "^7.23.2"
   }
 }
