@@ -4,7 +4,7 @@
 source "${ONE_PIPELINE_PATH}"/tools/get_repo_params
 
 APP_TOKEN_PATH="./app-token"
-read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(get_env APP_REPO)" "$APP_TOKEN_PATH")
+read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(load_repo app-repo url)" "$APP_TOKEN_PATH")
 
 if [[ $APP_SCM_TYPE == "gitlab" ]]; then
   # shellcheck disable=SC2086

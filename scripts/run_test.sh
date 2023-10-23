@@ -5,8 +5,8 @@ save_deployment_artifact(){
     deployment_file=$1
     deployment_type=$2
     APP_TOKEN_PATH="./app-token"
-    read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(get_env APP_REPO)" "$APP_TOKEN_PATH")
-    read -r APP_ABSOLUTE_SCM_TYPE < <(get_absolute_scm_type "$(get_env APP_REPO)")
+    read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(load_repo app-repo url)" "$APP_TOKEN_PATH")
+    read -r APP_ABSOLUTE_SCM_TYPE < <(get_absolute_scm_type "$(load_repo app-repo url)")
     token=$(cat $APP_TOKEN_PATH)
     if [ "$APP_ABSOLUTE_SCM_TYPE" == "hostedgit" ]; then
         id=$(curl --header "PRIVATE-TOKEN: ${token}" "${APP_API_URL}/projects/$(echo ${APP_REPO_OWNER}/${APP_REPO_NAME} | jq -rR @uri)" | jq .id)
@@ -14,7 +14,7 @@ save_deployment_artifact(){
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "github_integrated" ]; then
         DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "githubconsolidated" ]; then
-        git_type="$(jq -r --arg git_repo "$(get_env APP_REPO)" '[ .services[] | select (.dashboard_url == $git_repo) | .parameters.git_id ] | first' "$TOOLCHAIN_CONFIG_JSON")"
+        git_type="$(jq -r --arg git_repo "$(load_repo app-repo url)" '[ .services[] | select (.dashboard_url == $git_repo) | .parameters.git_id ] | first' "$TOOLCHAIN_CONFIG_JSON")"
         if [ "$git_type" == "integrated" ]; then
             DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
         else
@@ -80,7 +80,7 @@ run_test() {
 
     mv jest-junit.xml $test_result_file_name
 
-    app_url=$(get_env APP_REPO "")
+    app_url=$(load_repo app-repo url "")
 
     if [[ $publish_test_to_doi == 1 ]]; then
       if [[ -z "${app_url}" ]]; then

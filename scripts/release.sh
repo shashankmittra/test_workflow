@@ -7,7 +7,6 @@
 
 # shellcheck source=/dev/null
 . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
-. "${ONE_PIPELINE_PATH}/internal/tools/logging"
 
 # Check the status of pipeline and then release the artifacts to inventory
 
@@ -42,7 +41,7 @@ function upload_deployment_artifact (){
 }
 
 function upload_image_artifact (){
-    read -r APP_REPO_NAME < <(get_repo_name "$(get_env APP_REPO)")
+    read -r APP_REPO_NAME < <(get_repo_name "$(load_repo app-repo url)")
     while read -r artifact; do
     type="$(load_artifact "${artifact}" type)"
     if [[ ${type} == "image" ]]; then
