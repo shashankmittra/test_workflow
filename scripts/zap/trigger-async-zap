@@ -20,8 +20,6 @@ fi
 
 export_env "app-url"
 
-source "${ONE_PIPELINE_PATH}"/tools/trigger-task
-
 #
 # save "target-application-server-url" using set_env
 # then mark it to export, so it will be synced 
