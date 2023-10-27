@@ -13,7 +13,7 @@ setup:
       set -x
     fi
     if [[ "$(get_env pipeline_namespace)" == *"pr"* ||  "$(get_env pipeline_namespace)" == *"ci"* ]]; then
-      source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/code_setup.sh
+      source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/code_setup.sh
     fi
 
 test:
@@ -28,7 +28,7 @@ test:
     fi
     # ensure we're located in the source app repo
     cd "$WORKSPACE/$(load_repo app-repo path)"
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/run_test.sh
     save_deployment_artifact deployment_iks.yml IKS
     save_deployment_artifact deployment_os.yml OPENSHIFT
     run_test test com.ibm.unit_tests unit-test-result.xml 1
@@ -48,8 +48,8 @@ containerize:
     # ensure we build the app repo Dockerfile
     cd "$WORKSPACE/$(load_repo app-repo path)"
 
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/build_setup.sh
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/build.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/build_setup.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/build.sh
 
 deploy:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.39@sha256:499559f10a289300828536196947da164c09cece319e3ce3f30fd408cde55c5d
@@ -62,8 +62,8 @@ deploy:
       set -x
     fi
 
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_setup.sh
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/deploy_setup.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/deploy.sh
 
 acceptance-test:
   abort_on_failure: false
@@ -72,7 +72,7 @@ acceptance-test:
     #!/usr/bin/env bash
 
     export APP_URL=$(get_env app-url)
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh    
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/run_test.sh    
     run_test acceptance-test com.ibm.acceptance_tests acceptance-test-result.xml 0
 
 release:
@@ -87,7 +87,7 @@ release:
       set -x
     fi
 
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/release.sh
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/release.sh
 
 dynamic-scan:
   dind: true
@@ -104,9 +104,9 @@ dynamic-scan:
           echo "Please provide the app-url as the running application url. Recommended to use stage/test environment to run the Dynamic scan." >&2
           exit 1
         fi
-        source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/zap-cc-config
+        source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/zap/zap-cc-config
       fi
-      source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/trigger-async-zap
+      source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/zap/trigger-async-zap
     fi
 
 owasp-zap:
@@ -116,4 +116,4 @@ owasp-zap:
   script: |
     #!/usr/bin/env bash
 
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/trigger_zap_scans
+    source $WORKSPACE/$(get_env ONE_PIPELINE_CONFIG_DIRECTORY_NAME)/scripts/zap/trigger_zap_scans
