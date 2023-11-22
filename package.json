@@ -46,10 +46,10 @@
     "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "ansi-regex": "^6.0.1",
-    "axios": "^0.24.0",
-    "mpath": "^0.8.4",
     "@babel/core": "^7.23.2",
-    "@babel/traverse": "^7.23.2"
+    "@babel/traverse": "^7.23.2",
+    "ansi-regex": "^6.0.1",
+    "axios": "^1.6.2",
+    "mpath": "^0.8.4"
   }
 }
