@@ -30,9 +30,8 @@ yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjso
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
 echo "Updating Cookie secrets in the deployment file......"
-COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | tr -d '\r\n' | base64)" # pragma: allowlist secret
-sed "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}" 
-cat "${DEPLOYMENT_FILE}"
+COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | base64)" # pragma: allowlist secret
+sed -i "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}" 
 
 echo "Cluster IP Service should be unique accross all the namespace, updating Cluster IP service name with namespace..."
 CIP_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="ClusterIP" ) | .key')
