@@ -30,7 +30,7 @@ yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjso
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
 echo "Updating Cookie secrets in the deployment file......"
-COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret")"
+COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | tr -d '\r\n' | base64)" # pragma: allowlist secret
 sed "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}" 
 cat "${DEPLOYMENT_FILE}"
 
