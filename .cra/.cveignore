@@ -1,1 +1,6 @@
-[]
+[
+    {
+        "cve": "SNYK-JS-INFLIGHT-6095116",
+        "alwaysOmit": true
+    }
+]
