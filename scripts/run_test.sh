@@ -1,9 +1,4 @@
-#!/usr/bin/env bash
-if [[ "$PIPELINE_DEBUG" == 1 ]]; then
-  trap env EXIT
-  env
-  set -x
-fi
+#!/usr/bin/env bash    
 
 save_deployment_artifact(){
     . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
@@ -50,22 +45,21 @@ run_test() {
     source "${COMMONS_PATH}/doi/doi-publish-testrecord.sh" 
     source "${ONE_PIPELINE_PATH}/internal/doi/helper/doi_ibmcloud_login"
 
-    params=(
+    collect-evidence \
       --tool-type "jest" \
       --status "pending" \
       --evidence-type $test_evidence_type \
-    )
-    if [[ "${TASK_NAME}" == *"unit-test"* ]];then
+      --asset-type "repo" \
+      --asset-key "app-repo"
+
+    while read -r artifact; do
       collect-evidence \
-        "${params[@]}" \
-        --asset-type "repo" \
-        --asset-key "app-repo"
-    else
-      while read -r artifact; do
-        params+=(--assets "$artifact":"artifact")
-        done < <(list_artifacts)
-        collect-evidence "${params[@]}"
-    fi
+        --tool-type "jest" \
+        --status "pending" \
+        --evidence-type "$test_evidence_type" \
+        --asset-type "artifact" \
+        --asset-key "$artifact"
+    done < <(list_artifacts)
 
     cd ../"$(load_repo app-repo path)"
     npm ci
@@ -97,21 +91,21 @@ run_test() {
       fi
     fi
 
-    params=(
+    collect-evidence \
       --tool-type "jest" \
       --status "$status" \
       --evidence-type $test_evidence_type \
-      --attachment $test_result_file_name \
-    )
-    if [[ "${TASK_NAME}" == *"unit-test"* ]];then
+      --asset-type "repo" \
+      --asset-key "app-repo" \
+      --attachment $test_result_file_name
+
+    while read -r artifact; do
       collect-evidence \
-        "${params[@]}" \
-        --asset-type "repo" \
-        --asset-key "app-repo"
-    else
-      while read -r artifact; do
-        params+=(--assets "$artifact":"artifact")
-        done < <(list_artifacts)
-        collect-evidence "${params[@]}"
-    fi
+        --tool-type "jest" \
+        --status "$status" \
+        --evidence-type "$test_evidence_type" \
+        --asset-type "artifact" \
+        --asset-key "$artifact" \
+        --attachment $test_result_file_name
+    done < <(list_artifacts)
 }
