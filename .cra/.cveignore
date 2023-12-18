@@ -1,6 +1,10 @@
 [
     {
         "cve": "SNYK-JS-INFLIGHT-6095116",
-        "alwaysOmit": true
+        "untilRemediationAvailable": true
+    },
+    {
+        "cve": "SNYK-JS-AXIOS-6124857",
+        "untilRemediationAvailable": true
     }
 ]
