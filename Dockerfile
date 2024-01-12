@@ -10,7 +10,7 @@
 # specific language governing permissions and limitations under the License.
 
 # hadolint ignore=DL3007
-FROM registry.access.redhat.com/ubi8/nodejs-18-minimal:latest
+FROM registry.access.redhat.com/ubi8/nodejs-20-minimal:latest
 USER root
 
 RUN microdnf -y upgrade && microdnf clean all
