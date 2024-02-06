@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-echo "Updating the namespace in the deployment file....."
+echo "Updating the namespace in the deployment file ${DEPLOYMENT_FILE}"
 NAMESPACE_DOC_INDEX=$(yq read --doc "*" --tojson "${DEPLOYMENT_FILE}" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="namespace") | .key')
 yq w -d "${NAMESPACE_DOC_INDEX}" "${DEPLOYMENT_FILE}" metadata.name "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 yq write --inplace "$DEPLOYMENT_FILE" --doc "*" "metadata.namespace" "${IBMCLOUD_IKS_CLUSTER_NAMESPACE}"
 
-echo "Updating Image Pull Secrets Name in the deployment file......"
+echo "Updating Image Pull Secrets Name in the deployment file ${DEPLOYMENT_FILE}"
 SECRET_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select((.value.kind | ascii_downcase=="secret") and (.value.type | ascii_downcase=="kubernetes.io/dockerconfigjson")) | .key')
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "metadata.name" "${IMAGE_PULL_SECRET_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
@@ -16,7 +16,7 @@ yq write --doc "${SERVICE_ACCOUNT_DOC_INDEX}" "${DEPLOYMENT_FILE}" "imagePullSec
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
 
-echo "Updating Image Pull Secrets in the deployment file......"
+echo "Updating Image Pull Secrets in the deployment file ${DEPLOYMENT_FILE}"
 REGISTRY_AUTH=""
 if [[ -n "$BREAK_GLASS" ]]; then
   REGISTRY_AUTH=$(jq .parameters.docker_config_json /config/artifactory)
@@ -29,9 +29,8 @@ fi
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjson]" "${REGISTRY_AUTH}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
-echo "Updating Cookie secrets in the deployment file......"
-COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | base64)" # pragma: allowlist secret
-sed -i "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}" 
+# For polyglot usage
+source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/env.deploy.sh
 
 echo "Cluster IP Service should be unique accross all the namespace, updating Cluster IP service name with namespace..."
 CIP_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="ClusterIP" ) | .key')
@@ -45,7 +44,7 @@ if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
   mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 fi
 
-echo "updating Cluster IP service name in the ingress.."
+echo "Updating Cluster IP service name in the ingress in ${DEPLOYMENT_FILE}"
 INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
 yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[*].backend.service.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
