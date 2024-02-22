@@ -24,9 +24,10 @@ function upload_deployment_artifact (){
     if [[ ${type} != "image" ]]; then
         DEPLOYMENT_ARTIFACT_NAME="$(load_artifact "${artifact}" name)"
         DEPLOYMENT_ARTIFACT_PROVENANCE="$(load_artifact "${artifact}" provenance)"
+        DEPLOYMENT_ARTIFACT_ORIGIN="$(load_artifact "${artifact}" artifact_origin)"
         DEPLOYMENT_ARTIFACT_DIGEST="$(load_artifact "${artifact}" digest)"
         DEPLOYMENT_ARTIFACT_SIGN="$(load_artifact "${artifact}" signature)"
-        APP_ARTIFACTS='{"origin": "'${DEPLOYMENT_ARTIFACT_PROVENANCE}'" }'
+        APP_ARTIFACTS='{"origin": "'${DEPLOYMENT_ARTIFACT_ORIGIN}'" }'
         cocoa inventory add \
             --name="$DEPLOYMENT_ARTIFACT_NAME" \
             --artifact="$DEPLOYMENT_ARTIFACT_NAME" \

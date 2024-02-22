@@ -16,14 +16,18 @@ save_deployment_artifact(){
     if [ "$APP_ABSOLUTE_SCM_TYPE" == "hostedgit" ]; then
         id=$(curl --header "PRIVATE-TOKEN: ${token}" "${APP_API_URL}/projects/$(echo ${APP_REPO_OWNER}/${APP_REPO_NAME} | jq -rR @uri)" | jq .id)
         DEPLOYMENT_ARTIFACT="${APP_API_URL}/projects/${id}/repository/files/${deployment_file}/raw?ref=${COMMIT_SHA}"
+        DEPLOYMENT_ARTIFACT_ORIGIN=$DEPLOYMENT_ARTIFACT
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "github_integrated" ]; then
         DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+        DEPLOYMENT_ARTIFACT_ORIGIN="https://github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/blob/${COMMIT_SHA}/${deployment_file}"
     elif [ "$APP_ABSOLUTE_SCM_TYPE" == "githubconsolidated" ]; then
         git_type="$(jq -r --arg git_repo "$(load_repo app-repo url)" '[ .services[] | select (.dashboard_url == $git_repo) | .parameters.git_id ] | first' "$TOOLCHAIN_CONFIG_JSON")"
         if [ "$git_type" == "integrated" ]; then
             DEPLOYMENT_ARTIFACT="https://raw.github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+            DEPLOYMENT_ARTIFACT_ORIGIN="https://github.ibm.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/blob/${COMMIT_SHA}/${deployment_file}"
         else
             DEPLOYMENT_ARTIFACT="https://raw.githubusercontent.com/${APP_REPO_OWNER}/${APP_REPO_NAME}/${COMMIT_SHA}/${deployment_file}"
+            DEPLOYMENT_ARTIFACT_ORIGIN=$DEPLOYMENT_ARTIFACT
         fi
     else
         warning "$APP_ABSOLUTE_SCM_TYPE is not supported"
@@ -37,6 +41,7 @@ save_deployment_artifact(){
       "type=deployment" \
       "signature=${DEPLOYMENT_ARTIFACT_DIGEST}" \
       "deployment_type=${deployment_type}"\
+      "artifact_origin=${DEPLOYMENT_ARTIFACT_ORIGIN}" \
       "digest=sha256:${DEPLOYMENT_ARTIFACT_DIGEST}" \
       "provenance=${DEPLOYMENT_ARTIFACT}"
 }
