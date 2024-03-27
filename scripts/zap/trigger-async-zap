@@ -11,10 +11,11 @@ URL=$(get_env app-url "")
 if [ -z  "${URL}"  ] || [[  "${URL}" = "http://null"  ]]; then
 	ZAP_EVIDENCE_TYPE="$(get_env zap_evidence_type "com.ibm.dynamic_scan")"
 	ZAP_STATUS_TYPE="failure"
-	source "${COMMONS_PATH}"/owasp-zap/report.sh
+	source "${COMMONS_PATH}"/owasp-zap/zap_support.sh
 
 	echo "Unable to get Application URL....."
 	echo "Please provide app-url as environment property. You can provide it through the pipeline UI as a parameter or set it during the pipeline run by running 'set_env app-url \$URL'"
+	fail_zap_results
 	exit 1
 fi
 
