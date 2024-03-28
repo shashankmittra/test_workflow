@@ -4,7 +4,7 @@
 
 version: '1'
 setup:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
     if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -18,7 +18,7 @@ setup:
 
 test:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
     if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -35,7 +35,7 @@ test:
 
 containerize:
   dind: true
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
 
@@ -52,7 +52,7 @@ containerize:
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/build.sh
 
 deploy:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.39@sha256:499559f10a289300828536196947da164c09cece319e3ce3f30fd408cde55c5d
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.53
   script: |
     #!/usr/bin/env bash
 
@@ -67,7 +67,7 @@ deploy:
 
 acceptance-test:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
 
@@ -77,7 +77,7 @@ acceptance-test:
 
 release:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.39@sha256:499559f10a289300828536196947da164c09cece319e3ce3f30fd408cde55c5d
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.53
   script: |
     #!/usr/bin/env bash
 
@@ -92,7 +92,7 @@ release:
 dynamic-scan:
   dind: true
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
     if [ -z "$(get_env opt-in-dynamic-scan "")" ]; then
@@ -112,7 +112,7 @@ dynamic-scan:
 owasp-zap:
   dind: true
   abort_on_failure: true
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.25@sha256:dd2000b525336acd00e9b95b74f15696797764725adbb25fa720e9431d558cbf
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
 
