@@ -21,6 +21,9 @@ get-icr-region() {
     ibm:yp:eu-gb)
       echo uk
       ;;
+    ibm:yp:eu-es)
+      echo es
+      ;;
     ibm:yp:jp-tok)
       echo jp
       ;;
