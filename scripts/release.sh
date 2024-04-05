@@ -13,7 +13,8 @@
 ONE_PIPELINE_STATUS=$(get_env one-pipeline-status 0)
 if [ "$(get_env skip-inventory-update-on-failure 1)" == "1" ]; then
     if [ $ONE_PIPELINE_STATUS -eq 1 ]; then
-          echo "Skipping release stage as some of the pipeline stages are not successfull."
+          echo "Skipping release stage as some of the pipeline stages are not successfull. Set 'skip-inventory-update-on-failure' to 0 to allow an inventory write. Refer to https://cloud.ibm.com/docs/devsecops?topic=devsecops-cd-devsecops-add-pipeline-steps#cd-devsecops-add-pipeline-release"
+          echo "Read more about pipeline properties at https://cloud.ibm.com/docs/devsecops?topic=devsecops-cd-devsecops-pipeline-parm" 
           exit 1
     fi
 fi
