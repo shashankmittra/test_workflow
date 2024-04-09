@@ -29,8 +29,8 @@ fi
 yq write --doc "${SECRET_DOC_INDEX}" "${DEPLOYMENT_FILE}" "data[.dockerconfigjson]" "${REGISTRY_AUTH}" > "${TEMP_DEPLOYMENT_FILE}"
 mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 
-# For polyglot usage
-source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/env.deploy.sh
+# For polyglot practice
+source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/.env.deploy.sh
 
 echo "Cluster IP Service should be unique accross all the namespace, updating Cluster IP service name with namespace..."
 CIP_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.spec.type=="ClusterIP" ) | .key')
@@ -44,10 +44,12 @@ if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
   mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 fi
 
-echo "Updating Cluster IP service name in the ingress in ${DEPLOYMENT_FILE}"
 INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
-yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[*].backend.service.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
-mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+if [ -n "${INGRESS_DOC_INDEX}" ]; then
+  echo "Updating Cluster IP service name in the ingress in ${DEPLOYMENT_FILE}"
+  yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[*].backend.service.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
+  mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
+fi
 
 # Check if the cluster is paid IKS cluster. If yes then update the cluster domain name in place for the host name.
 CLUSTER_INGRESS_SUBDOMAIN=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressHostname // .ingress.hostname' | cut -d, -f1)
@@ -68,6 +70,18 @@ if [ -n "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" !=
       # hello-app is from INGRESS_RULES_INDEX
       # prod is cluster namespace
       yq w --inplace --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.rules["${INGRESS_RULES_INDEX}"].host "${INGRESS_RULE_HOST/.cluster-ingress-subdomain/-$DOMAIN_ADDRESS}"
+    fi
+  fi
+fi
+
+CLUSTER_INGRESS_SECRET=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressSecretName // .ingress.secretName' | cut -d, -f1 )
+if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
+  ROUTE_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="route") | .key')
+  if [ -n "$ROUTE_DOC_INDEX" ]; then
+    route_spec_tls="$(yq read --doc "${ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.tls)"
+    if [ -z "$route_spec_tls" ] || [ "$route_spec_tls" == "null" ]; then
+      echo "Setting spec.tls in Route"
+      yq w --inplace --doc "${ROUTE_DOC_INDEX}" "${DEPLOYMENT_FILE}" spec.tls.termination "edge"
     fi
   fi
 fi
@@ -101,8 +115,21 @@ fi
 export APPURL
 if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
   ROUTE_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="route") | .key')
-  service_name=$(yq r --doc "$ROUTE_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
-  APPURL="http://$(kubectl get route --namespace "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" "${service_name}" -o json | jq -r '.status.ingress[0].host')"
+  if [ -n "$ROUTE_DOC_INDEX" ]; then
+    route_name=$(yq r --doc "$ROUTE_DOC_INDEX" "$DEPLOYMENT_FILE" metadata.name)
+    route_json_file=$(mktemp)
+    kubectl get route --namespace "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" "${route_name}" -o json > $route_json_file
+    route_host="$(jq -r '.spec.host//empty' "$route_json_file")"
+    route_path="$(jq -r '.spec.path//empty' "$route_json_file")"
+    # Remove the last / from selected_route_path if any
+    route_path="${route_path%/}"
+    if jq -e '.spec.tls' "$route_json_file" > /dev/null 2>&1; then
+      route_protocol="https"
+    else
+      route_protocol="http"
+    fi
+    APPURL="${route_protocol}://${route_host}${route_path}"
+  fi
 else
   sleep 10
   if [ -n "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" != true ]; then

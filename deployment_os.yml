@@ -91,23 +91,6 @@ spec:
   selector:
     app: node-compliance-app
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: hello-service-cip-ingress-os
-  namespace: sample
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: hello-service-cip
-            port:
-              number: 8080
----
 apiVersion: v1
 kind: Secret
 metadata:
