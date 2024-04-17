@@ -109,6 +109,7 @@ metadata:
   namespace: sample
   annotations:
     haproxy.router.openshift.io/disable_cookies: 'true'
+    haproxy.router.openshift.io/hsts_header: max-age=31536000
 spec:
   path: /
   to:
