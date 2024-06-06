@@ -7,6 +7,18 @@ if [[ "${PIPELINE_DEBUG:-0}" == 1 ]]; then
   trap env EXIT
 fi
 
+# Check if the registry details are provided, If not exit the script. 
+ICR_REGISTRY_NAMESPACE="$(get_env registry-namespace "")"
+IBM_LOGIN_REGISTRY_REGION="$(get_env registry-region "")" 
+
+# Check if any of the variables are empty
+if [ -z "$ICR_REGISTRY_NAMESPACE" ] || [ -z "$IBM_LOGIN_REGISTRY_REGION" ]; then
+    echo "Error: registry-namespace or registry-region variables are empty. Please provide all the necessary cluster and registry details."
+    echo "If you are using custom deployment, please modify setup/build/deploy scripts to support your usecase"
+    echo "For more details check this https://cloud.ibm.com/docs/devsecops?topic=devsecops-cd-devsecops-pipeline-parm"
+    exit 0
+fi
+
 get-icr-region() {
   case "$1" in
     ibm:yp:us-south)

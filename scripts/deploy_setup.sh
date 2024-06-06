@@ -20,6 +20,18 @@ export DEPLOYMENT_FILE
 export CLUSTER_TYPE
 export TEMP_DEPLOYMENT_FILE
 
+# Check if the cluster details are provided, If not exit the script. 
+IBMCLOUD_IKS_CLUSTER_NAMESPACE="$(get_env dev-cluster-namespace)"
+IBMCLOUD_IKS_CLUSTER_NAME="$(get_env cluster-name)"
+
+# Check if any of the variables are empty
+if [ -z "$IBMCLOUD_IKS_CLUSTER_NAMESPACE" ] || [ -z "$IBMCLOUD_IKS_CLUSTER_NAME" ]; then
+    echo "Error: dev-cluster-namespace or cluster-name variables are empty. Please provide all the necessary cluster and registry details."
+    echo "If you are using custom deployment, please modify setup/build/deploy scripts to support your usecase"
+    echo "For more details check this https://cloud.ibm.com/docs/devsecops?topic=devsecops-cd-devsecops-pipeline-parm"
+    exit 0
+fi
+
 # add some logging about which key will be used
 echo ""
 if [ -n "$(get_env deploy-ibmcloud-api-key "")" ]; then
