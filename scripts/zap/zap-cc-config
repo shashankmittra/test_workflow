@@ -23,8 +23,9 @@ export_env "app_repo"
 
 while IFS= read -r artifact; do
   source=$(load_artifact "${artifact}" "source")
+  type=$(load_artifact "${artifact}" "type")
   url=$(echo $source | awk -F '.git#' '{print $1}' | cut -d# -f1)
-  if [[ "$url" == "$(load_repo "${app_repo}" url)" ]]; then
+  if [[ "$url" == "$(load_repo "${app_repo}" url)" && "$type" == "image" ]]; then
     set_env "zap-artifact" "${artifact}"
     export_env "zap-artifact"
   fi

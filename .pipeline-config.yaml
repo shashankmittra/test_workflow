@@ -95,6 +95,11 @@ dynamic-scan:
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
   script: |
     #!/usr/bin/env bash
+    if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+      trap env EXIT
+      env
+      set -x
+    fi
     if [ -z "$(get_env opt-in-dynamic-scan "")" ]; then
       echo "If you want to enable this stage, add 'opt-in-dynamic-scan' parameter to your pipeline with any value. Also, please add 'opt-in-dynamic-api-scan' to your pipeline with any value to have api scans running, and 'opt-in-dynamic-ui-scan' with any value to have ui scans running" >&2
     else
