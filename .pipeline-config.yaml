@@ -4,7 +4,7 @@
 
 version: '1'
 setup:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
     if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -18,7 +18,7 @@ setup:
 
 test:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
     if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -35,7 +35,7 @@ test:
 
 containerize:
   dind: true
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
 
@@ -52,7 +52,7 @@ containerize:
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/build.sh
 
 deploy:
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.53
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.59
   script: |
     #!/usr/bin/env bash
 
@@ -67,7 +67,7 @@ deploy:
 
 acceptance-test:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
 
@@ -77,7 +77,7 @@ acceptance-test:
 
 release:
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.53
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.59
   script: |
     #!/usr/bin/env bash
 
@@ -92,7 +92,7 @@ release:
 dynamic-scan:
   dind: true
   abort_on_failure: false
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
     if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -117,7 +117,7 @@ dynamic-scan:
 owasp-zap:
   dind: true
   abort_on_failure: true
-  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.40
+  image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
 
