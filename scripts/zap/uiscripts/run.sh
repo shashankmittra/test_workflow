@@ -18,16 +18,16 @@ enabled=1 \n
 gpgcheck=1 \n
 gpgkey=https://dl.google.com/linux/linux_signing_key.pub \n' > /etc/yum.repos.d/google-chrome.repo
 
-yum install -y -q https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/desktop-file-utils-0.23-8.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/xdg-utils-1.1.2-5.el8.noarch.rpm \
-  http://mirror.centos.org/altarch/7/os/aarch64/Packages/liberation-fonts-common-1.07.2-16.el7.noarch.rpm \
-  http://mirror.centos.org/centos/7/os/x86_64/Packages/liberation-mono-fonts-1.07.2-16.el7.noarch.rpm \
-  http://mirror.centos.org/centos/7/os/x86_64/Packages/liberation-narrow-fonts-1.07.2-16.el7.noarch.rpm \
-  http://mirror.centos.org/centos/7/os/x86_64/Packages/liberation-sans-fonts-1.07.2-16.el7.noarch.rpm \
-  http://mirror.centos.org/centos/7/os/x86_64/Packages/liberation-serif-fonts-1.07.2-16.el7.noarch.rpm \
-  http://mirror.centos.org/altarch/7/os/aarch64/Packages/liberation-fonts-1.07.2-16.el7.noarch.rpm \
-  http://mirror.centos.org/centos/7/os/x86_64/Packages/vulkan-filesystem-1.1.97.0-1.el7.noarch.rpm \
-  http://mirror.centos.org/centos/7/os/x86_64/Packages/vulkan-1.1.97.0-1.el7.x86_64.rpm
+yum install -y -q https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/desktop-file-utils-0.23-8.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/xdg-utils-1.1.2-5.el8.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/liberation-fonts-common-1.07.2-16.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/liberation-mono-fonts-1.07.2-16.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/liberation-narrow-fonts-1.07.2-16.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/liberation-sans-fonts-1.07.2-16.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/liberation-serif-fonts-1.07.2-16.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/liberation-fonts-1.07.2-16.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/vulkan-filesystem-1.1.97.0-1.el7.noarch.rpm \
+  https://vault.centos.org/7.9.2009/os/x86_64/Packages/vulkan-1.1.97.0-1.el7.x86_64.rpm
 
 yum install -y -q google-chrome-stable && echo 'Chrome installed successfully' || echo "Chrome installation failed"
 
