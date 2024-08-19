@@ -31,7 +31,7 @@ test:
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
     save_deployment_artifact deployment_iks.yml IKS
     save_deployment_artifact deployment_os.yml OPENSHIFT
-    run_test test com.ibm.unit_tests unit-test-result.xml 1
+    run_unit_test
 
 containerize:
   dind: true
@@ -73,7 +73,7 @@ acceptance-test:
 
     export APP_URL=$(get_env app-url)
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh    
-    run_test acceptance-test com.ibm.acceptance_tests acceptance-test-result.xml 0
+    run_acceptance_test
 
 release:
   abort_on_failure: false

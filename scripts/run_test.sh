@@ -46,43 +46,103 @@ save_deployment_artifact(){
       "provenance=${DEPLOYMENT_ARTIFACT}"
 }
 
-run_test() {
-    test_name=$1
-    test_evidence_type=$2
-    test_result_file_name=$3
-    publish_test_to_doi=$4
+publish_to_doi_unit_test(){
+    local test_result_file_name="$1"
+    local reusedEvidenceJson="${2:-""}"
+
+    local app_url
+    local label
+    app_url=$(load_repo app-repo url "")
     
     source "${COMMONS_PATH}/doi/doi-publish-testrecord.sh" 
     source "${ONE_PIPELINE_PATH}/internal/doi/helper/doi_ibmcloud_login"
+    if [[ -z "${app_url}" ]]; then
+        echo "Please provide the app-url as the running application url to publish unitest results to Devops insights" >&2
+    elif [[ "$(get_env pipeline_namespace)" != *"pr"* ]]; then
+        refresh_ibmcloud_session
+        if [[ -z "$reusedEvidenceJson" ]]; then
+            doi-publish-testrecord "unittest" $test_result_file_name "$app_url" # upload unittest xml file to DOI 
+        else
+            label=$(basename "$test_result_file_name")
+            doi-publish --evidence-file "${reusedEvidenceJson}" --record-type "unittest" --attachment-label "${label}" --url "$app_url" --attachment-output-path "${test_result_file_name}"
+        fi
+    fi
+}
+
+run_unit_test() {
+    local test_name="test"
+    local test_evidence_type="com.ibm.unit_tests"
+    local test_result_file_name="unit-test-result.xml"
+    local params
+    local reusedEvidenceJson
+    local status
 
     params=(
       --tool-type "jest" \
+      --evidence-type $test_evidence_type \
+      --asset-type "repo" \
+      --asset-key "app-repo"
+    )
+      
+    reusedEvidenceJson="$(mktemp)"
+    status_file="$(mktemp)"
+    if (check-evidence-for-reuse "${params[@]}" --output-path "${reusedEvidenceJson}" >"${status_file}"); then
+        status=$(cat "${status_file}")
+        publish_to_doi_unit_test "${test_result_file_name}" "${reusedEvidenceJson}"
+    else
+        collect-evidence \
+          "${params[@]}" \
+          --status "pending"
+
+        cd ../"$(load_repo app-repo path)"
+        npm ci
+
+        # save exit code for old evidence collection
+        exit_code=0
+        npm "$test_name" || exit_code=$?
+   
+        # save status for new evidence collection
+        status="success"
+        if [ "$exit_code" != "0" ]; then
+          status="failure"
+        fi
+
+        mv jest-junit.xml $test_result_file_name
+
+        publish_to_doi_unit_test "${test_result_file_name}"
+
+        collect-evidence \
+          "${params[@]}" \
+          --status "$status" \
+          --attachment $test_result_file_name
+    fi
+}
+
+run_acceptance_test() {
+    local test_name="acceptance-test"
+    local test_evidence_type="com.ibm.acceptance_tests"
+    local test_result_file_name="acceptance-test-result.xml"
+    local tool_type="jest"
+    local params
+    local status
+
+    params=(
+      --tool-type "$tool_type" \
       --status "pending" \
       --evidence-type $test_evidence_type \
     )
-    if [[ "${TASK_NAME}" == *"unit-test"* ]];then
-      collect-evidence \
-        "${params[@]}" \
-        --asset-type "repo" \
-        --asset-key "app-repo"
-    else
-      while read -r artifact; do
+    while read -r artifact; do
         params+=(--assets "$artifact":"artifact")
-        done < <(list_artifacts)
-        collect-evidence "${params[@]}"
-    fi
+    done < <(list_artifacts)
+    collect-evidence "${params[@]}"
 
     cd ../"$(load_repo app-repo path)"
     npm ci
 
     # save exit code for old evidence collection
     exit_code=0
-    if [[ $test_name == "test" ]]; then
-      npm test || exit_code=$?
-    else
-      npm run $test_name || exit_code=$?
-    fi
-   
+    npm run $test_name || exit_code=$?
+
     # save status for new evidence collection
     status="success"
     if [ "$exit_code" != "0" ]; then
@@ -91,32 +151,14 @@ run_test() {
 
     mv jest-junit.xml $test_result_file_name
 
-    app_url=$(load_repo app-repo url "")
-
-    if [[ $publish_test_to_doi == 1 ]]; then
-      if [[ -z "${app_url}" ]]; then
-        echo "Please provide the app-url as the running application url to publish unitest results to Devops insights" >&2
-      elif [[ "$(get_env pipeline_namespace)" != *"pr"* ]]; then
-        refresh_ibmcloud_session 
-        doi-publish-testrecord "unittest" $test_result_file_name "$app_url" # upload unittest xml file to DOI  
-      fi
-    fi
-
     params=(
-      --tool-type "jest" \
+      --tool-type "$tool_type" \
       --status "$status" \
       --evidence-type $test_evidence_type \
       --attachment $test_result_file_name \
     )
-    if [[ "${TASK_NAME}" == *"unit-test"* ]];then
-      collect-evidence \
-        "${params[@]}" \
-        --asset-type "repo" \
-        --asset-key "app-repo"
-    else
-      while read -r artifact; do
+    while read -r artifact; do
         params+=(--assets "$artifact":"artifact")
-        done < <(list_artifacts)
-        collect-evidence "${params[@]}"
-    fi
+    done < <(list_artifacts)
+    collect-evidence "${params[@]}"
 }
