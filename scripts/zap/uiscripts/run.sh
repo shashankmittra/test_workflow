@@ -82,16 +82,16 @@ chmod 0755 /usr/local/bin/chromedriver
 #install xvfb    
 yum install -y -q libXScrnSaver \
   mesa-libgbm nss at-spi2-atk libX11-xcb \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/libxkbfile-1.1.0-1.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/xorg-x11-xkb-utils-7.7-28.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/xorg-x11-server-common-1.20.11-1.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/xorg-x11-xauth-1.0.9-12.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/libXdmcp-1.1.3-1.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/libXfont2-2.0.3-2.el8.x86_64.rpm \
-  https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/xorg-x11-server-Xvfb-1.20.10-1.el8.x86_64.rpm && echo 'XVFB installed successfully\n' || echo "XVFB installation failed\n"
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/libxkbfile-1.1.0-1.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/xorg-x11-xkb-utils-7.7-28.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/xorg-x11-server-common-1.20.11-23.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/xorg-x11-xauth-1.0.9-12.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/libXdmcp-1.1.3-1.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/libXfont2-2.0.3-2.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/xorg-x11-server-Xvfb-1.20.11-23.el8.x86_64.rpm && echo 'XVFB installed successfully\n' || echo "XVFB installation failed\n"
 
-yum install -y -q https://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/libraw1394-2.1.2-5.el8.x86_64.rpm \
-  http://rpmfind.net/linux/centos/8-stream/AppStream/x86_64/os/Packages/libavc1394-0.5.4-7.el8.x86_64.rpm
+yum install -y -q https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/libraw1394-2.1.2-5.el8.x86_64.rpm \
+  https://vault.centos.org/8-stream/AppStream/x86_64/os/Packages/libavc1394-0.5.4-7.el8.x86_64.rpm
 
 nohup sh -c 'xvfb-run --server-args="$DISPLAY -screen 0 $GEOMETRY -ac +extension RANDR"' >/dev/null 2>&1 & 
 nohup sh -c 'java -jar /opt/selenium/selenium-server-standalone.jar -port 4444' >/dev/null 2>&1 &
