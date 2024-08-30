@@ -47,4 +47,3 @@ else
     "${APP_API_URL}/repos/${APP_REPO_OWNER}/${APP_REPO_NAME}/branches/$branch/protection" \
     --data "@${branch_protection_content}"
 fi
-npm ci

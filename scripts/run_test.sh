@@ -95,7 +95,6 @@ run_unit_test() {
           --status "pending"
 
         cd ../"$(load_repo app-repo path)"
-        npm ci
 
         # save exit code for old evidence collection
         exit_code=0
