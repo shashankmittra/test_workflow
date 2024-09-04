@@ -53,6 +53,6 @@
     "mpath": "^0.8.4"
   },
   "overrides": {
-    "micromatch": "4.0.7"
+    "micromatch": "4.0.8"
   }
 }
