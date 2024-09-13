@@ -31,7 +31,7 @@
     "csurf": "^1.11.0",
     "debug": "~2.6.9",
     "ejs": "^3.1.10",
-    "express": "^4.20.0",
+    "express": "^4.21.0",
     "express-session": "^1.17.1",
     "helmet": "^4.6.0",
     "http-errors": "~1.6.3",
@@ -53,7 +53,6 @@
     "mpath": "^0.8.4"
   },
   "overrides": {
-    "micromatch": "4.0.8",
-    "send": "0.19.0"
+    "micromatch": "4.0.8"
   }
 }
