@@ -64,7 +64,8 @@ publish_to_doi_unit_test(){
             doi-publish-testrecord "unittest" $test_result_file_name "$app_url" # upload unittest xml file to DOI 
         else
             label=$(basename "$test_result_file_name")
-            doi-publish --evidence-file "${reusedEvidenceJson}" --record-type "unittest" --attachment-label "${label}" --url "$app_url" --attachment-output-path "${test_result_file_name}"
+            doi_exit_code=0
+            doi-publish --evidence-file "${reusedEvidenceJson}" --record-type "unittest" --attachment-label "${label}" --url "$app_url" --attachment-output-path "${test_result_file_name}" || doi_exit_code=$?
         fi
     fi
 }
