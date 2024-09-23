@@ -13,7 +13,7 @@ save_deployment_artifact(){
     read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(load_repo app-repo url)" "$APP_TOKEN_PATH")
     read -r APP_ABSOLUTE_SCM_TYPE < <(get_absolute_scm_type "$(load_repo app-repo url)")
     token=$(cat $APP_TOKEN_PATH)
-    if [ "$APP_ABSOLUTE_SCM_TYPE" == "hostedgit" ]; then
+    if [[ "$APP_ABSOLUTE_SCM_TYPE" == "hostedgit" || "$APP_ABSOLUTE_SCM_TYPE" == "gitlab" ]]; then
         id=$(curl --header "PRIVATE-TOKEN: ${token}" "${APP_API_URL}/projects/$(echo ${APP_REPO_OWNER}/${APP_REPO_NAME} | jq -rR @uri)" | jq .id)
         DEPLOYMENT_ARTIFACT="${APP_API_URL}/projects/${id}/repository/files/${deployment_file}/raw?ref=${COMMIT_SHA}"
         DEPLOYMENT_ARTIFACT_ORIGIN=$DEPLOYMENT_ARTIFACT
