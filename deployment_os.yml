@@ -117,3 +117,5 @@ spec:
     name: hello-service-cip
   port:
     targetPort: 8080
+  tls:
+    termination: edge
