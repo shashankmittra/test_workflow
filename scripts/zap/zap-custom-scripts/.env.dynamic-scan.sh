@@ -13,9 +13,16 @@ if [ -f "${API_DATA_FILE}" ]; then
 
     TMP_API_DATA_FILE=$(mktemp)
 
-    jq --arg app_url_regex "${app_url_regex}" \
-    '.globalExcludeUrls += [$app_url_regex] | .apisToScan += [{"path":"/health", "method":"get"}]' \
-    "${API_DATA_FILE}" > "${TMP_API_DATA_FILE}"
+    if [[ "$(get_env cluster-type)" == *"OPENSHIFT"* ]]; then
+        app_url_ignore_latest_metadata="^${APP_URL_REGEX//\//\\\/}\\/latest\\/meta-data\\/\$"
+        jq --arg app_url_regex "${app_url_regex}" --arg app_url_ignore_latest_metadata "${app_url_ignore_latest_metadata}" \
+        '.globalExcludeUrls += [$app_url_regex] | .globalExcludeUrls += [$app_url_ignore_latest_metadata] | .apisToScan += [{"path":"/health", "method":"get"}]'  \
+        "${API_DATA_FILE}" > "${TMP_API_DATA_FILE}"
+    else 
+        jq --arg app_url_regex "${app_url_regex}" \
+        '.globalExcludeUrls += [$app_url_regex] | .apisToScan += [{"path":"/health", "method":"get"}]' \
+        "${API_DATA_FILE}" > "${TMP_API_DATA_FILE}"
+    fi
 
     cp -f "${TMP_API_DATA_FILE}" "${API_DATA_FILE}"
 fi
