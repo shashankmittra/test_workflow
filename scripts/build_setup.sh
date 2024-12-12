@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source "${ONE_PIPELINE_PATH}"/tools/retry
 
 set -euo pipefail
 
@@ -95,7 +96,8 @@ else
     ICR_REGISTRY_DOMAIN="$ICR_REGISTRY_REGION.icr.io"
   fi
   IMAGE="$ICR_REGISTRY_DOMAIN/$ICR_REGISTRY_NAMESPACE/$IMAGE_NAME:$IMAGE_TAG"
-  docker login -u iamapikey --password-stdin "$ICR_REGISTRY_DOMAIN" < /config/api-key
+  retry 5 5 \
+    docker login -u iamapikey --password-stdin "$ICR_REGISTRY_DOMAIN" < /config/api-key
 
   # Create the namespace if needed to ensure the push will be can be successfull
   echo "Checking registry namespace: ${ICR_REGISTRY_NAMESPACE}"
