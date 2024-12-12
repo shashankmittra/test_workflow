@@ -12,3 +12,11 @@ fi
 echo "Updating Cookie secrets in the deployment file $DEPLOYMENT_FILE"
 COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | base64)" # pragma: allowlist secret
 sed -i "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}" 
+
+# export cluster type for dynamic scan if cluster_type is populated
+cluster_type="${cluster_type:-""}"
+if [ -n "$cluster_type" ]; then
+  echo "Set and export cluster-type env property to $cluster_type for dynamic scan customization"
+  set_env "cluster-type" "$cluster_type"
+  export_env "cluster-type"
+fi
