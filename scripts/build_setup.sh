@@ -103,7 +103,8 @@ else
   echo "Checking registry namespace: ${ICR_REGISTRY_NAMESPACE}"
   IBM_LOGIN_REGISTRY_REGION=$(< /config/registry-region awk -F: '{print $3}')
   ibmcloud config --check-version false
-  ibmcloud login --apikey @/config/api-key -r "$IBM_LOGIN_REGISTRY_REGION" -a "$IBMCLOUD_API"
+  retry 5 2 \
+    ibmcloud login --apikey @/config/api-key -r "$IBM_LOGIN_REGISTRY_REGION" -a "$IBMCLOUD_API"
   NS=$( ibmcloud cr namespaces | sed 's/ *$//' | grep -x "${ICR_REGISTRY_NAMESPACE}" ||: )
 
   if [ -z "${NS}" ]; then
