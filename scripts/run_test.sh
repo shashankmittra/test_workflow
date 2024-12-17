@@ -9,6 +9,7 @@ save_deployment_artifact(){
     . "${ONE_PIPELINE_PATH}/tools/get_repo_params"
     deployment_file=$1
     deployment_type=$2
+    deployment_file_type="${3:-"deployment"}"
     APP_TOKEN_PATH="./app-token"
     read -r APP_REPO_NAME APP_REPO_OWNER APP_SCM_TYPE APP_API_URL < <(get_repo_params "$(load_repo app-repo url)" "$APP_TOKEN_PATH")
     read -r APP_ABSOLUTE_SCM_TYPE < <(get_absolute_scm_type "$(load_repo app-repo url)")
@@ -36,9 +37,9 @@ save_deployment_artifact(){
     DEPLOYMENT_ARTIFACT_PATH="$(load_repo app-repo path)"
     DEPLOYMENT_ARTIFACT_DIGEST="$(sha256sum "${WORKSPACE}/${DEPLOYMENT_ARTIFACT_PATH}/${deployment_file}" | awk '{print $1}')"
     
-    save_artifact "artifact-${deployment_type}" \
-      "name=${APP_REPO_NAME}_${deployment_type}_deployment" \
-      "type=deployment" \
+    save_artifact "artifact_${deployment_file_type}_${deployment_type}" \
+      "name=${APP_REPO_NAME}_${deployment_type}_${deployment_file_type}" \
+      "type=${deployment_file_type}" \
       "signature=${DEPLOYMENT_ARTIFACT_DIGEST}" \
       "deployment_type=${deployment_type}"\
       "artifact_origin=${DEPLOYMENT_ARTIFACT_ORIGIN}" \

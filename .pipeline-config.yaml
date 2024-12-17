@@ -35,8 +35,6 @@ test:
     # ensure we're located in the source app repo
     cd "$WORKSPACE/$(load_repo app-repo path)"
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
-    save_deployment_artifact deployment_iks.yml IKS
-    save_deployment_artifact deployment_os.yml OPENSHIFT
     run_unit_test
 
 containerize:
@@ -68,18 +66,32 @@ deploy:
       set -x
     fi
 
+    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_setup.sh
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy.sh
+    if [[ $(get_env deployment-type "deployment") == "helm" ]]; then
+      source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_helm.sh
+      save_deployment_artifact iks_helm_deployment/Chart.yaml IKS helm
+      save_deployment_artifact iks_helm_deployment/values.yaml IKS dev-config
+      save_deployment_artifact os_helm_deployment/values.yaml OPENSHIFT dev-config
+      save_deployment_artifact os_helm_deployment/Chart.yaml OPENSHIFT helm
+    else
+      source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy.sh
+      save_deployment_artifact deployment_iks.yml IKS deployment
+      save_deployment_artifact deployment_os.yml OPENSHIFT deployment
+    fi
 
 acceptance-test:
   abort_on_failure: false
   image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
   script: |
     #!/usr/bin/env bash
-
     export APP_URL=$(get_env app-url)
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh    
+    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
     run_acceptance_test
+    save_deployment_artifact iks_helm_deployment/pre-prod-values.yaml IKS pre-prod-config
+    save_deployment_artifact iks_helm_deployment/prod-values.yaml IKS prod-config
+    save_deployment_artifact os_helm_deployment/pre-prod-values.yaml OPENSHIFT pre-prod-config
+    save_deployment_artifact os_helm_deployment/prod-values.yaml OPENSHIFT prod-config
 
 release:
   abort_on_failure: false

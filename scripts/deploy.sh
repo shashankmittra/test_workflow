@@ -45,15 +45,14 @@ if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
 fi
 
 INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
+# Check if the cluster is paid IKS cluster. If yes then update the cluster domain name in place for the host name.
+CLUSTER_INGRESS_SUBDOMAIN=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressHostname // .ingress.hostname' | cut -d, -f1)
 if [ -n "${INGRESS_DOC_INDEX}" ]; then
   echo "Updating Cluster IP service name in the ingress in ${DEPLOYMENT_FILE}"
   yq write --doc "${INGRESS_DOC_INDEX}" "${DEPLOYMENT_FILE}" "spec.rules[0].http.paths[*].backend.service.name" "${CIP_SERVICE_NAME}" > "${TEMP_DEPLOYMENT_FILE}"
   mv "${TEMP_DEPLOYMENT_FILE}" "${DEPLOYMENT_FILE}"
 fi
 
-# Check if the cluster is paid IKS cluster. If yes then update the cluster domain name in place for the host name.
-CLUSTER_INGRESS_SUBDOMAIN=$(ibmcloud ks cluster get --cluster "${IBMCLOUD_IKS_CLUSTER_NAME}" --json | jq -r '.ingressHostname // .ingress.hostname' | cut -d, -f1)
-INGRESS_DOC_INDEX=$(yq read --doc "*" --tojson "$DEPLOYMENT_FILE" | jq -r 'to_entries | .[] | select(.value.kind | ascii_downcase=="ingress") | .key')
 if [ -n "${CLUSTER_INGRESS_SUBDOMAIN}" ] && [ "${KEEP_INGRESS_CUSTOM_DOMAIN}" != true ]; then
   if [ -z "${INGRESS_DOC_INDEX}" ]; then
     echo "No Kubernetes Ingress definition found in $DEPLOYMENT_FILE."

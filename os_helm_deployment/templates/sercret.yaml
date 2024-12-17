@@ -1,0 +1,24 @@
+{{- if .Values.secret.dockerconfigjson }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.secret.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- toYaml .Values.labels | nindent 4 }}
+data:
+  .dockerconfigjson: {{ .Values.secret.dockerconfigjson }}
+type: kubernetes.io/dockerconfigjson
+{{- end }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Values.secret.cookieName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{ .Values.labels | toYaml }}
+data:
+  cookie-secret: {{ .Values.secret.cookie | toString | b64enc }}
+type: Opaque

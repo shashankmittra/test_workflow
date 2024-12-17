@@ -1,0 +1,47 @@
+---
+# Default values for os_helm_deployment.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+replicaCount: 1
+namespace: "sample"
+targetPort: 8080
+deployment: node-compliance-app
+
+image: webapp
+imagePullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+labels:
+  app: node-compliance-app
+serviceAccount:
+  create: true
+  name: sample
+  imagePullSecrets:
+    name: node-compliance-secret
+nodeportService:
+  name: hello-service
+  labels:
+    app: hello-service
+  type: NodePort
+  selector:
+    app: node-compliance-app
+clusterService:
+  name: hello-service-cip
+  type: ClusterIP
+  port: 80
+  selector:
+    app: node-compliance-app
+secret:
+  name: node-compliance-secret
+  cookieName: cookie-secret
+  cookie: "mycookiesecret"
+
+route:
+  name: hello-service-cip-route
+  host: hello-app.cluster-ingress-subdomain
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "1000m"

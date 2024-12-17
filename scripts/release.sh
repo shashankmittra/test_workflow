@@ -20,6 +20,7 @@ if [ "$(get_env skip-inventory-update-on-failure 1)" == "1" ]; then
 fi
 
 function upload_deployment_artifact (){
+    read -r APP_REPO_NAME < <(get_repo_name "$(load_repo app-repo url)")
     while read -r artifact; do
     type="$(load_artifact "${artifact}" type)"
     if [[ ${type} != "image" ]]; then
@@ -29,10 +30,24 @@ function upload_deployment_artifact (){
         DEPLOYMENT_ARTIFACT_DIGEST="$(load_artifact "${artifact}" digest)"
         DEPLOYMENT_ARTIFACT_SIGN="$(load_artifact "${artifact}" signature)"
         APP_ARTIFACTS='{"origin": "'${DEPLOYMENT_ARTIFACT_ORIGIN}'" }'
+        if [[ $type == "deployment" ]];then
+            name="$DEPLOYMENT_ARTIFACT_NAME"
+        else
+            DEPLOYMENT_TYPE="$(load_artifact "${artifact}" deployment_type)"
+            if [[ $type == "helm" ]];then
+                name="${APP_REPO_NAME}_${DEPLOYMENT_TYPE}/helm"
+            elif [[ $type == "dev-config" ]];then
+                name="${APP_REPO_NAME}_${DEPLOYMENT_TYPE}/dev/config"
+            elif [[ $type == "pre-prod-config" ]];then
+                name="${APP_REPO_NAME}_${DEPLOYMENT_TYPE}/pre-prod/config"
+            elif [[ $type == "prod-config" ]];then
+                name="${APP_REPO_NAME}_${DEPLOYMENT_TYPE}/prod/config"
+            fi
+        fi
         cocoa inventory add \
-            --name="$DEPLOYMENT_ARTIFACT_NAME" \
+            --name="${name}" \
             --artifact="$DEPLOYMENT_ARTIFACT_NAME" \
-            --type="deployment" \
+            --type="${type}" \
             --app-artifacts="${APP_ARTIFACTS}" \
             --provenance="${DEPLOYMENT_ARTIFACT_PROVENANCE}" \
             --sha256="${DEPLOYMENT_ARTIFACT_DIGEST}" \

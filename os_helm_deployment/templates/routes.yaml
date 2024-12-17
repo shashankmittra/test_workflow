@@ -1,0 +1,17 @@
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: {{ .Values.route.name }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    haproxy.router.openshift.io/disable_cookies: 'true'
+    haproxy.router.openshift.io/hsts_header: max-age=31536000
+spec:
+  path: /
+  to:
+    kind: Service
+    name: {{ .Values.clusterService.name }}
+  port:
+    targetPort: {{ .Values.targetPort }}
+  tls:
+    termination: edge
