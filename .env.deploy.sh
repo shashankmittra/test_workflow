@@ -5,13 +5,15 @@ if [ -z "$DEPLOYMENT_FILE" ]; then
   # In case of polyglot the DEPLOYMENT_FILE may not be set
   if [ -f "deployment_iks.yml" ]; then
     DEPLOYMENT_FILE="deployment_iks.yml"
-  else
+  elif [ -f "deployment_os.yml" ]; then
     DEPLOYMENT_FILE="deployment_os.yml"
   fi
 fi
-echo "Updating Cookie secrets in the deployment file $DEPLOYMENT_FILE"
-COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | base64)" # pragma: allowlist secret
-sed -i "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}" 
+if [ -n "$DEPLOYMENT_FILE" ]; then
+  echo "Updating Cookie secrets in the deployment file $DEPLOYMENT_FILE"
+  COOKIE_SECRET="$(get_env "cookie-secret" "mycookiesecret" | base64)" # pragma: allowlist secret
+  sed -i "s/COOKIE_SECRET/${COOKIE_SECRET}/g" "${DEPLOYMENT_FILE}"
+fi
 
 # export cluster type for dynamic scan if cluster_type is populated
 cluster_type="${cluster_type:-""}"
