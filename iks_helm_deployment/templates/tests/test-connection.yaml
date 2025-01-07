@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "iks_helm_deployment.fullname" . }}-test-connection"
+  name: "{{ .Release.Name }}-test-connection"
   labels:
     {{ .Values.labels | toYaml }}
   annotations:
     "helm.sh/hook": test
 spec:
   containers:
-    - name: wget
+    - name: {{ .Release.Name }}-test-container
       image: busybox
       command: ['wget']
       args: ['{{ include "iks_helm_deployment.fullname" . }}:{{ .Values.nodeportService.port }}']
