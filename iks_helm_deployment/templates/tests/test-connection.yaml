@@ -11,5 +11,5 @@ spec:
     - name: {{ .Release.Name }}-test-container
       image: busybox
       command: ['wget']
-      args: ['{{ include "iks_helm_deployment.fullname" . }}:{{ .Values.nodeportService.port }}']
+      args: ['{{ .Values.clusterService.name }}:{{ .Values.clusterService.port }}']
   restartPolicy: Never
