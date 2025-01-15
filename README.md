@@ -83,6 +83,14 @@ The sections below describe additional parameters (specific to these customized 
 | `opt-in-dynamic-api-scan` | | To enable the OWASP Zap API scan. | |
 | `opt-in-dynamic-api-scan` | | To enable the OWASP Zap UI scan. | |
 
+#### deploy stage
+| Property | Default | Description | Required |
+| -------- | :-----: | ----------- | :------: |
+| `deployment-type` | deployment | To toggle deployment file and helm based deployment. To use the helm based deployment, specify this property as `helm`| |
+
+Note: In the release step all the config files, like pre-prod config file or the prod config file for the helm charts gets added to the inventory but the acceptance test evidence gets collected to the dev-config file only because only the dev config file is used for the dev development and coressponding evidence. Also the type of the inventory will be different for each config file so that the required evidence file can be written to validate the right evidence based on the environment app is deployed using helm charts. 
+
+
 #### release stage
 | Property | Default | Description | Required |
 | -------- | :-----: | ----------- | :------: |
