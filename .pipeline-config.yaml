@@ -100,11 +100,13 @@ release:
       env
       set -x
     fi
-    source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
-    save_deployment_artifact iks_helm_deployment/pre-prod-values.yaml IKS pre-prod-config
-    save_deployment_artifact iks_helm_deployment/prod-values.yaml IKS prod-config
-    save_deployment_artifact os_helm_deployment/pre-prod-values.yaml OPENSHIFT pre-prod-config
-    save_deployment_artifact os_helm_deployment/prod-values.yaml OPENSHIFT prod-config
+    if [[ $(get_env deployment-type "deployment") == "helm" ]]; then
+      source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
+      save_deployment_artifact iks_helm_deployment/pre-prod-values.yaml IKS pre-prod-config
+      save_deployment_artifact iks_helm_deployment/prod-values.yaml IKS prod-config
+      save_deployment_artifact os_helm_deployment/pre-prod-values.yaml OPENSHIFT pre-prod-config
+      save_deployment_artifact os_helm_deployment/prod-values.yaml OPENSHIFT prod-config
+    fi
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/release.sh
 
 dynamic-scan:
