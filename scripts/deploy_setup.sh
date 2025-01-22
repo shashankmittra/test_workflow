@@ -59,7 +59,7 @@ REGISTRY_URL="$(load_artifact app-image name| awk -F/ '{print $1}')"
 IMAGE="$(load_artifact app-image name)"
 DIGEST="$(load_artifact app-image digest)"
 IMAGE_PULL_SECRET_NAME="ibmcloud-toolchain-${IBMCLOUD_TOOLCHAIN_ID}-${REGISTRY_URL}"
-DEPLOYMENT_FILE="$(cat /config/deployment-file)"
+DEPLOYMENT_FILE="$(get_env "deployment-file" "")"
 CLUSTER_TYPE="IKS"
 TEMP_DEPLOYMENT_FILE="temp.yml"
 
