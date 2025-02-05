@@ -5,13 +5,24 @@
 version: '2'
 
 tasks:
-
+  ### CI Pipeline Configuration ###
+  # The ci-pipeline includes the following four configurable tasks:
+  #   * code-checks
+  #   * code-build
+  #   * deploy-checks
+  #   * deploy-release
   code-checks:
     include:
       - dind
+    # code-checks includes five configurable steps:
+    #   * checks-setup
+    #   * detect-secrets
+    #   * compliance-checks
+    #   * peer-review
+    #   * static-scan
     steps:
       - name: checks-setup
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
           if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -31,20 +42,26 @@ tasks:
       - name: detect-secrets
         include:
           - docker-socket
-
       - name: compliance-checks
         include:
           - docker-socket
-
       - name: static-scan
         include:
           - docker-socket
+
+  # Configuration for the code-build task in the ci-pipeline
   code-build:
     include:
       - dind
+    # code-build includes five configurable steps:
+    #   * setup
+    #   * unit-test
+    #   * build-artifact
+    #   * sign-artifact
+    #   * scan-artifact
     steps:
       - name: setup
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
           if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -63,7 +80,7 @@ tasks:
           fi
       - name: unit-test
         onError: continue
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
           if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -78,7 +95,7 @@ tasks:
       - name: build-artifact
         include:
           - docker-socket
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
 
@@ -96,9 +113,14 @@ tasks:
       - name: sign-artifact
         when: 'false'
 
+  # Configuration for the deploy-checks task in the ci-pipeline
   deploy-checks:
     include:
       - dind
+    # deploy-checks includes three configurable steps:
+    #   * deploy
+    #   * dynamic-scan
+    #   * acceptance-test
     steps:
       - name: deploy
         image: icr.io/continuous-delivery/pipeline/pipeline-base-image:2.59
@@ -128,7 +150,7 @@ tasks:
         include:
           - docker-socket
         onError: continue
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
           if [[ "$PIPELINE_DEBUG" == 1 ]]; then
@@ -149,10 +171,9 @@ tasks:
             fi
             source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/trigger-async-zap
           fi
-
       - name: acceptance-test
         onError: continue
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
 
@@ -160,8 +181,9 @@ tasks:
           source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh    
           run_acceptance_test
 
-
+  # Configuration for the deploy-release task in the ci-pipeline
   deploy-release:
+    # deploy-release includes one configurable step: run-stage
     steps:
       - name: run-stage
         onError: continue
@@ -182,16 +204,101 @@ tasks:
           fi
           source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/release.sh
 
-  async-dast-scan:
+  # Configuration for owasp-zap or async-stage in the async-pipeline
+  async-stage:
     include:
       - dind
+    # async-stage includes one configurable step: run-stage
+    # configuration for owasp-zap is also required, as the step is renamed when triggering the async-pipeline
     steps:
       - name: run-stage
         include:
           - docker-socket
-        image: icr.io/continuous-delivery/pipeline/pipeline-base-image:3.46
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-image:3.54
       - name: owasp-zap
         script: |
           #!/usr/bin/env bash
 
           source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/zap/trigger_zap_scans
+
+  ### PR Pipeline Configuration ###
+  # The pr-pipeline includes one configurable task: pr-code-checks
+  pr-code-checks:
+    include:
+      - dind
+    # pr-code-checks includes four configurable steps:
+    #   * checks-setup
+    #   * detect-secrets
+    #   * unit-test
+    #   * compliance-checks
+    steps:
+      - name: checks-setup
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
+        script: |
+          #!/usr/bin/env bash
+          if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+            trap env EXIT
+            env
+            set -x
+          fi
+          if [[ "$(get_env pipeline_namespace)" == *"pr"* ||  "$(get_env pipeline_namespace)" == *"ci"* ]]; then
+            source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/code_setup.sh
+
+            # ensure we're located in the source app repo
+            cd "$WORKSPACE/$(load_repo app-repo path)"
+
+            # update the dependency in the source app
+            npm ci
+          fi
+      - name: detect-secrets
+        include:
+          - docker-socket
+      - name: unit-test
+        onError: continue
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
+        script: |
+          #!/usr/bin/env bash
+          if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+            trap env EXIT
+            env
+            set -x
+          fi
+          # ensure we're located in the source app repo
+          cd "$WORKSPACE/$(load_repo app-repo path)"
+          source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
+          run_unit_test
+      - name: compliance-checks
+        include:
+          - docker-socket
+
+finally:
+  # The ci-pipeline includes one configurable finally task: code-ci-finish
+  code-ci-finish:
+    steps:
+      - name: prepare
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
+        script: |
+          #!/usr/bin/env bash
+
+          if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+            trap env EXIT
+            env
+            set -x
+          fi
+          echo "Running code-ci-finish"
+          exit 0
+  # The pr-pipeline includes one configurable finally task: code-pr-finish
+  code-pr-finish:
+    steps:
+      - name: prepare
+        image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
+        script: |
+          #!/usr/bin/env bash
+
+          if [[ "$PIPELINE_DEBUG" == 1 ]]; then
+            trap env EXIT
+            env
+            set -x
+          fi
+          echo "Running code-ci-finish"
+          exit 0
