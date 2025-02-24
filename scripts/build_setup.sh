@@ -21,45 +21,47 @@ if [ -z "$ICR_REGISTRY_NAMESPACE" ] || [ -z "$IBM_LOGIN_REGISTRY_REGION" ]; then
 fi
 
 get-icr-region() {
-  case "$1" in
-    ibm:yp:us-south)
+  # convert long synax region (like ibm:yp:us-east) to short syntax region (like us-east)
+  short_syntax_region="$(echo "$1" | awk -F: '{print $NF}')"
+  case "$short_syntax_region" in
+    us-south)
       echo us
       ;;
-    ibm:yp:us-east)
+    us-east)
       echo us
       ;;
-    ibm:yp:eu-de)
+    eu-de)
       echo de
       ;;
-    ibm:yp:eu-gb)
+    eu-gb)
       echo uk
       ;;
-    ibm:yp:eu-es)
+    eu-es)
       echo es
       ;;
-    ibm:yp:jp-tok)
+    jp-tok)
       echo jp
       ;;
-    ibm:yp:jp-osa)
+    jp-osa)
       echo jp2
       ;;
-    ibm:yp:au-syd)
+    au-syd)
       echo au
       ;;
-    ibm:yp:br-sao)
+    br-sao)
       echo br
       ;;
-    ibm:yp:eu-fr2)
+    eu-fr2)
       echo fr2
       ;;
-    ibm:yp:ca-tor)
+    ca-tor)
       echo ca
       ;;
     stg)
       echo stg
-      ;;  
+      ;;
     *)
-      echo "Unknown region: $1" >&2
+      echo "Unknown region: $1 (short syntax region: $short_syntax_region)" >&2
       exit 1
       ;;
   esac
@@ -101,7 +103,7 @@ else
 
   # Create the namespace if needed to ensure the push will be can be successfull
   echo "Checking registry namespace: ${ICR_REGISTRY_NAMESPACE}"
-  IBM_LOGIN_REGISTRY_REGION=$(< /config/registry-region awk -F: '{print $3}')
+  IBM_LOGIN_REGISTRY_REGION=$(< /config/registry-region awk -F: '{print $NF}')
   ibmcloud config --check-version false
   retry 5 2 \
     ibmcloud login --apikey @/config/api-key -r "$IBM_LOGIN_REGISTRY_REGION" -a "$IBMCLOUD_API"
