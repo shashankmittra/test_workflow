@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: "{{  .Chart.Name }}"
+    chart: '{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}'
+spec:
+  rules:
+  - host: {{ .Chart.Name }}-{{ .Release.Namespace }}.{{ .Values.ingress.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - {{ .Chart.Name }}-{{ .Release.Namespace }}.{{ .Values.ingress.host }}
+    {{- if .Values.ingress.secret}}
+    secretName: {{ .Values.ingress.secret }}
+    {{- end}}
+{{- end }}

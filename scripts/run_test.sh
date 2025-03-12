@@ -116,6 +116,8 @@ run_unit_test() {
           "${params[@]}" \
           --status "$status" \
           --attachment $test_result_file_name
+
+        return $exit_code
     fi
 }
 
@@ -162,4 +164,6 @@ run_acceptance_test() {
         params+=(--assets "$artifact":"artifact")
     done < <(list_artifacts)
     collect-evidence "${params[@]}"
+
+    return $exit_code
 }

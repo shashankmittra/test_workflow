@@ -42,14 +42,14 @@ router.post('/search', validateSearchData, validateDateForTrip, (req, res) => {
 
     let onward_flights, return_flights;
     try {
-        if(trip_type === enumMap.trip_type_map.ONE_WAY) {
+        if (trip_type === enumMap.trip_type_map.ONE_WAY) {
             onward_flights = computeFlightSearch(from, to, pax);
             return_flights = null;
         } else {
             onward_flights = computeFlightSearch(from, to, pax);
             return_flights = computeFlightSearch(to, from, pax);
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err);
         return res.status(err.statusCode || 500).send({
             status: err.status || false,
@@ -69,7 +69,7 @@ router.post('/search', validateSearchData, validateDateForTrip, (req, res) => {
 function computeFlightSearch(source, dest, pax) {
     const filtered_airports = airportsList.filter(elem => elem.icao);
     let from_airport = filtered_airports.find(elem => elem.code === source);
-    if(!from_airport) {
+    if (!from_airport) {
         throw new Object({
             status: false,
             message: "Departing airport not found in the list",
@@ -77,7 +77,7 @@ function computeFlightSearch(source, dest, pax) {
         });
     }
     let to_airport = filtered_airports.find(elem => elem.code === dest);
-    if(!to_airport) {
+    if (!to_airport) {
         throw new Object({
             status: false,
             message: "Destination airport not found in the list",
@@ -91,7 +91,7 @@ function computeFlightSearch(source, dest, pax) {
 
     // airlines operating from "from airport"
     const airlines_operating_from = from_airport['nick'] ? airport_airlines[from_airport['nick']] : [];
-    if(!airlines_operating_from || !airlines_operating_from.length) {
+    if (!airlines_operating_from || !airlines_operating_from.length) {
         throw new Object({
             status: false,
             message: "No airlines found to be operating from departure airport",
@@ -101,7 +101,7 @@ function computeFlightSearch(source, dest, pax) {
 
     // airlines operating from "from airport"
     const airlines_operating_to = to_airport['nick'] ? airport_airlines[to_airport['nick']] : [];
-    if(!airlines_operating_to || !airlines_operating_to.length) {
+    if (!airlines_operating_to || !airlines_operating_to.length) {
         throw new Object({
             status: false,
             message: "No airlines found to be operating to destination airport",
@@ -112,7 +112,7 @@ function computeFlightSearch(source, dest, pax) {
     // find intersecting airlines
     const intersecting_airlines = airlines_operating_from.filter(value => airlines_operating_to.includes(value));
 
-    if(!intersecting_airlines.length) {
+    if (!intersecting_airlines.length) {
         throw new Object({
             status: false,
             message: "No flights connecting the cities",
@@ -125,16 +125,16 @@ function computeFlightSearch(source, dest, pax) {
     const airlines_arr = utils.arrayfy(airlines, 'airline');
     const results = [];
 
-    for(let each_airline of intersecting_airlines) {
+    for (let each_airline of intersecting_airlines) {
         const airline_obj = airlines_arr.find(elem => elem.name === each_airline);
         const payload = {
             airline: each_airline,
             flight_no: `${airline_obj ? airline_obj.IATA : utils.randomString(2)} ${utils.randomNumber(100, 9999)}`,
-            fare: `$${utils.randomNumber(100, 999)}.${utils.randomNumber(1,99)}`,
-            departureTime: `${String(utils.randomNumber(0,23)).padStart(2, '0')}:${String(utils.randomNumber(0,59)).padStart(2, '0')}`,
-            flightDuration: `${utils.randomNumber(100,1500)} minutes`,
+            fare: `$${utils.randomNumber(100, 999)}.${utils.randomNumber(1, 99)}`,
+            departureTime: `${String(utils.randomNumber(0, 23)).padStart(2, '0')}:${String(utils.randomNumber(0, 59)).padStart(2, '0')}`,
+            flightDuration: `${utils.randomNumber(100, 1500)} minutes`,
         };
-        const fare = parseFloat(( pax.adult || 0 ) * Number(payload.fare.slice(1)) + ( pax.children || 0 ) * Number((payload.fare.slice(1)) * 0.75 )).toFixed(2);
+        const fare = parseFloat((pax.adult || 0) * Number(payload.fare.slice(1)) + (pax.children || 0) * Number((payload.fare.slice(1)) * 0.75)).toFixed(2);
         payload.totalFare = `$${fare}`;
         results.push(payload);
     }
@@ -144,33 +144,33 @@ function computeFlightSearch(source, dest, pax) {
 function validateSearchData(req, res, next) {
     let { to, from, trip_class, trip_type, pax } = req.body;
     // validation for payload
-    if(!to || !from) {
+    if (!to || !from) {
         return res.status(400).send({
             status: false,
             message: "Source and Destination required"
         });
     }
-    if(!trip_class) {
+    if (!trip_class) {
         req.body.trip_class = enumMap.trip_class_map.ECONOMY;
-    } 
-    if(!utils.validateEnumMap(enumMap.trip_class_map, req.body.trip_class)) {
+    }
+    if (!utils.validateEnumMap(enumMap.trip_class_map, req.body.trip_class)) {
         return res.status(400).send({
             status: false,
             message: "Invalid trip class"
         });
     }
 
-    if(!trip_type) {
+    if (!trip_type) {
         req.body.trip_type = enumMap.trip_type_map.ONE_WAY;
-    } 
-    if(!utils.validateEnumMap(enumMap.trip_type_map, req.body.trip_type)) {
+    }
+    if (!utils.validateEnumMap(enumMap.trip_type_map, req.body.trip_type)) {
         return res.status(400).send({
             status: false,
             message: "Invalid trip type"
         });
     }
 
-    if(!pax || (!pax.adult && !pax.children) ) {
+    if (!pax || (!pax.adult && !pax.children)) {
         return res.status(400).send({
             status: false,
             message: "Passengers can not be zero"
@@ -182,26 +182,26 @@ function validateSearchData(req, res, next) {
 
 function validateDateForTrip(req, res, next) {
     let { date, trip_type } = req.body;
-    if(!date || !date.departing) {
+    if (!date || !date.departing) {
         return res.status(400).send({
             status: false,
             message: "Departing date must be set!"
         });
-    } else if(date && !date.returning && trip_type === enumMap.trip_type_map.ROUND_TRIP) {
+    } else if (date && !date.returning && trip_type === enumMap.trip_type_map.ROUND_TRIP) {
         return res.status(400).send({
             status: false,
             message: "Returning date must be set for round-trip flight!"
         });
     }
 
-    if(date && !Date.parse(new Date(date.departing))) {
+    if (date && !Date.parse(new Date(date.departing))) {
         return res.status(400).send({
             status: false,
             message: "Invalid departing date"
         });
     }
 
-    if(date && date.returning && !Date.parse(new Date(date.returning))) {
+    if (date && date.returning && !Date.parse(new Date(date.returning))) {
         return res.status(400).send({
             status: false,
             message: "Invalid return date"
@@ -212,7 +212,12 @@ function validateDateForTrip(req, res, next) {
 
 /* GET flightbooking page. */
 router.get('/', logincheck, csrfProtection, (req, res) => {
-    res.render('flights', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail, _csrf: req.csrfToken() });
+    res.render('flights', {
+        environment_name: process.env.ENVIRONMENT_NAME || 'default',
+        isLoggedInUser: req.isLoggedInUser,
+        userEmail: req.session.userEmail,
+        _csrf: req.csrfToken()
+    });
 });
 
 

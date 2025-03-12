@@ -46,8 +46,8 @@
     "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.2",
-    "@babel/traverse": "^7.23.2",
+    "@babel/core": "^7.26.10",
+    "@babel/traverse": "^7.26.10",
     "ansi-regex": "^6.0.1",
     "axios": "^1.8.2",
     "mpath": "^0.8.4"

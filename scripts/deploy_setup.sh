@@ -99,16 +99,12 @@ if [ -z "${DEPLOYMENT_FILE}" ]; then
   echo "deployment-file environment is not defined."
   if [ "${CLUSTER_TYPE}" == "OPENSHIFT" ]; then
     DEPLOYMENT_FILE="deployment_os.yml"
-    VALUE_FILE="os_helm_deployment/values.yaml"
   else
-    VALUE_FILE="iks_helm_deployment/values.yaml"
     DEPLOYMENT_FILE="deployment_iks.yml"
   fi
    
   set_env "deployment-file" "$DEPLOYMENT_FILE"
-  set_env "value-file" "$VALUE_FILE"    
   set_env "cluster-type" "$CLUSTER_TYPE"
   export_env "cluster-type"
   echo "deployment-file is ${DEPLOYMENT_FILE}"
-  echo "Values file is ${VALUE_FILE}"
 fi

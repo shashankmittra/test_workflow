@@ -70,10 +70,8 @@ deploy:
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_setup.sh
     if [[ $(get_env deployment-type "deployment") == "helm" ]]; then
       source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy_helm.sh
-      save_deployment_artifact iks_helm_deployment/Chart.yaml IKS helm
-      save_deployment_artifact iks_helm_deployment/values.yaml IKS dev-config
-      save_deployment_artifact os_helm_deployment/values.yaml OPENSHIFT dev-config
-      save_deployment_artifact os_helm_deployment/Chart.yaml OPENSHIFT helm
+      save_deployment_artifact chart/node-compliance-app-helm/Chart.yaml helm helm
+      save_deployment_artifact chart/dev-values.yaml helm dev-config
     else
       source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/deploy.sh
       save_deployment_artifact deployment_iks.yml IKS deployment
@@ -102,10 +100,8 @@ release:
     fi
     if [[ $(get_env deployment-type "deployment") == "helm" ]]; then
       source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/run_test.sh
-      save_deployment_artifact iks_helm_deployment/pre-prod-values.yaml IKS pre-prod-config
-      save_deployment_artifact iks_helm_deployment/prod-values.yaml IKS prod-config
-      save_deployment_artifact os_helm_deployment/pre-prod-values.yaml OPENSHIFT pre-prod-config
-      save_deployment_artifact os_helm_deployment/prod-values.yaml OPENSHIFT prod-config
+      save_deployment_artifact chart/pre-prod-values.yaml helm pre-prod-config
+      save_deployment_artifact chart/prod-values.yaml helm prod-config
     fi
     source $WORKSPACE/$PIPELINE_CONFIG_REPO_PATH/scripts/release.sh
 

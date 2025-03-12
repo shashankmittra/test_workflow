@@ -15,6 +15,7 @@ metadata:
     app: node-compliance-app
 imagePullSecrets:
   - name: node-compliance-secret
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
@@ -51,12 +52,16 @@ spec:
             cpu: "250m"
           limits:
             memory: "128Mi"
-            cpu: "1000m"
+            cpu: "500m"
+            ephemeral-storage: "1Gi"
         image: webapp:1
         # for local development against minikube registry
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
+        env:
+        - name: ENVIRONMENT_NAME
+          value: "default-iks"
 ---
 apiVersion: v1
 kind: Service

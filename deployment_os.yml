@@ -15,6 +15,7 @@ metadata:
     app: node-compliance-app
 imagePullSecrets:
   - name: node-compliance-secret
+automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: Secret
@@ -22,7 +23,7 @@ metadata:
   name: node-compliance-secret
   namespace: sample
   labels:
-    app: node-compliance-app  
+    app: node-compliance-app
 data:
   .dockerconfigjson: secret
 type: kubernetes.io/dockerconfigjson
@@ -44,19 +45,23 @@ spec:
     spec:
       serviceAccountName: sample
       containers:
-      - name: node-compliance-app
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        image: webapp:1
-        # for local development against minikube registry
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8080
+        - name: node-compliance-app
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+              ephemeral-storage: "1Gi"
+          image: webapp:1
+          # for local development against minikube registry
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ENVIRONMENT_NAME
+              value: "default-os"
 ---
 apiVersion: v1
 kind: Service
@@ -97,7 +102,7 @@ metadata:
   name: cookie-secret
   namespace: sample
   labels:
-    app: node-compliance-app  
+    app: node-compliance-app
 data:
   cookie-secret: COOKIE_SECRET
 type: Opaque

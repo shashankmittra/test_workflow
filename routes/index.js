@@ -27,12 +27,17 @@ function logincheck(req, _res, next) {
 }
 
 router.get('/health', (_req, res) => {
-  return res.status(200).json({health:"OK"})
+  return res.status(200).json({ health: "OK" })
 })
 
 /* GET home page. */
 router.get('/', logincheck, csrfProtection, (req, res) => {
-  res.render('index', { isLoggedInUser: req.isLoggedInUser, userEmail: req.session.userEmail, _csrf: req.csrfToken() });
+  res.render('index', {
+    environment_name: process.env.ENVIRONMENT_NAME || 'default',
+    isLoggedInUser: req.isLoggedInUser,
+    userEmail: req.session.userEmail,
+    _csrf: req.csrfToken()
+  });
 });
 
 /* Login code */
