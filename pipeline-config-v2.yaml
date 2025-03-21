@@ -275,7 +275,7 @@ finally:
   # The ci-pipeline includes one configurable finally task: code-ci-finish
   code-ci-finish:
     steps:
-      - name: prepare
+      - name: run-stage
         image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
@@ -290,7 +290,7 @@ finally:
   # The pr-pipeline includes one configurable finally task: code-pr-finish
   code-pr-finish:
     steps:
-      - name: prepare
+      - name: run-stage
         image: icr.io/continuous-delivery/pipeline/pipeline-base-ubi:3.54
         script: |
           #!/usr/bin/env bash
