@@ -42,6 +42,7 @@ spec:
     metadata:
       labels:
         app: node-compliance-app
+        role: bluecharge
     spec:
       serviceAccountName: sample
       containers:
@@ -132,7 +133,8 @@ metadata:
   namespace: sample
 spec:
   podSelector:
-    matchLabels: {}
+    matchLabels:
+      role: bluecharge
   policyTypes:
     - Ingress
     - Egress
