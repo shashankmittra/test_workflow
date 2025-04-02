@@ -19,7 +19,8 @@ setup:
       cd "$WORKSPACE/$(load_repo app-repo path)"
     
       # update the dependency in the source app
-      npm ci
+      source "${ONE_PIPELINE_PATH}"/tools/retry
+      retry 5 5 npm ci
     fi
 
 test:
