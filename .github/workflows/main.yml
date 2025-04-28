@@ -1,39 +1,19 @@
-name: SonarCloud Scan for Node.js
-
+name: Build
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
-
+    types: [opened, synchronize, reopened]
 jobs:
-  sonarcloud:
-    name: SonarCloud Scan
+  sonarqube:
+    name: SonarQube
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout your Node.js code
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Step 2: SonarCloud Scan and Save Report
-      - name: Generate SARIF Report
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=$SONAR_PROJECT_KEY \
-            -Dsonar.organization=$SONAR_ORGANIZATION \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.sarifReportPaths=sonar-report.sarif
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-
-      - name: Upload SARIF Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: sonarcloud-sarif-report
-          path: sonar-report.sarif
