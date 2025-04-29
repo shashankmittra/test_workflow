@@ -15,6 +15,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 
+      
+      - name: Install Dependencies
+        run: |
+          npm install
+
+      - name: Run Tests and Generate Coverage Report
+        run: |
+          npm test -- --coverage
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
@@ -30,3 +38,9 @@ jobs:
         with:
           name: sonarcloud-report
           path: sonar_report.json
+
+      - name: Upload Code Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: sonar-coverage.json
