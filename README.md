@@ -16,7 +16,7 @@
 
 # Create and deploy a Node.js Sample Application using IBM Cloud DevSecOps
 
-> **DISCLAIMER**: This is a guideline sample application and is used for demonstrative and illustrative purposes of Node.js application deployed using IBM Cloud DevSecOps Continuous Integration (CI) and Continuous Deployment (CD) pipelines. This is not a production ready code.
+> **DISCLAIMER**: This is a guideline sample application and is used for demonstrative and illustrative purposes of Node.js application deployed using IBM Cloud DevSecOps Continuous Integration (CI) and Continuous Deployment (CD) pipelines. This is not a production ready cod
 
 ## Contents
 - [Scope](#scope)
